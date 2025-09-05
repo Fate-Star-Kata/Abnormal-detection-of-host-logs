@@ -3,103 +3,104 @@ import type { AdminHeader, MenuItem } from "@/types/factory";
 // 主菜单配置（用于Header组件）
 export const defaultMenuItems: MenuItem[] = [
   {
-    id: 'index',
-    label: 'menu.index',
-    href: '/',
+    id: "index",
+    label: "menu.index",
+    href: "/",
     icon: null,
     hide: false,
   },
   {
-    id: 'dashboard',
-    label: '系统概览',
-    href: '/dashboard',
+    id: "dashboard",
+    label: "系统概览",
+    href: "/dashboard",
     icon: null,
   },
   {
-    id: 'detection',
-    label: '实时监测',
-    href: '/detection',
+    id: "detection",
+    label: "实时监测",
+    href: "/detection",
     icon: null,
   },
   {
-    id: 'history',
-    label: '历史记录',
-    href: '/history',
+    id: "history",
+    label: "历史记录",
+    href: "/history",
     icon: null,
   },
   {
-    id: 'analysis',
-    label: '数据统计',
-    href: '/analysis',
+    id: "analysis",
+    label: "数据统计",
+    href: "/analysis",
     icon: null,
+    hide: true,
   },
 
   {
-    id: 'settings',
-    label: '系统设置',
-    href: '/settings',
+    id: "settings",
+    label: "系统设置",
+    href: "/settings",
     icon: null,
     children: [
       {
-        id: 'emailSystem',
-        label: '邮箱管理',
-        href: '/emailSystem',
+        id: "emailSystem",
+        label: "邮箱管理",
+        href: "/emailSystem",
         icon: null,
       },
       {
-        id: 'settings',
-        label: '用户设置',
-        href: '/settings',
-      }
-    ]
+        id: "settings",
+        label: "用户设置",
+        href: "/settings",
+      },
+    ],
   },
   {
-    id: 'templates',
-    label: 'menu.templates',
-    href: '/templates',
+    id: "templates",
+    label: "menu.templates",
+    href: "/templates",
     hide: true,
     children: [
       {
-        id: 'dashboard',
-        label: 'dashboard',
-        href: '/templates/dashboard'
+        id: "dashboard",
+        label: "dashboard",
+        href: "/templates/dashboard",
       },
       {
-        id: 'analytics',
-        label: 'analytics',
-        href: '/templates/analytics'
+        id: "analytics",
+        label: "analytics",
+        href: "/templates/analytics",
       },
       {
-        id: 'knowledge',
-        label: 'knowledge',
-        href: '/templates/knowledge'
+        id: "knowledge",
+        label: "knowledge",
+        href: "/templates/knowledge",
       },
       {
-        id: 'stats',
-        label: 'stats',
-        href: '/templates/stats'
+        id: "stats",
+        label: "stats",
+        href: "/templates/stats",
       },
       {
-        id: 'websocket',
-        label: 'websocket',
-        href: '/templates/websocket'
+        id: "websocket",
+        label: "websocket",
+        href: "/templates/websocket",
       },
-    ]
+    ],
   },
   {
-    id: 'system_film',
-    label: 'menu.system_film',
-    href: '/user/system_film',
+    id: "system_film",
+    label: "menu.system_film",
+    href: "/user/system_film",
     hide: true,
     icon: null,
   },
   {
-    id: 'admin',
-    label: 'menu.admin',
-    href: '/admin',
+    id: "admin",
+    label: "menu.admin",
+    href: "/admin",
     icon: null,
   },
-]
+];
 
 // 管理后台菜单配置
 export const adminMenuItems: AdminHeader[] = [

@@ -149,11 +149,13 @@ export function createDetectionConfig(data: CreateDetectionConfigRequest): Promi
   })
 }
 
-export function activateDetectionConfig(id: number): Promise<ActivateDetectionConfigResponse> {
+export function activateDetectionConfig(
+  id: number
+): Promise<ActivateDetectionConfigResponse> {
   return serviceAxios({
     url: `/malicious/detection-configs/${id}/activate/`,
-    method: 'post'
-  })
+    method: "post",
+  });
 }
 
 // 通知配置相关API
