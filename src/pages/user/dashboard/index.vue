@@ -7,7 +7,7 @@
     </div>
 
     <!-- 实时统计面板 -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div v-loading="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <!-- 今日检测次数 -->
       <div class="stats shadow-lg bg-primary text-primary-content">
         <div class="stat">
@@ -20,7 +20,7 @@
           </div>
           <div class="stat-title text-primary-content/80">今日检测次数</div>
           <div class="stat-value">{{ todayDetections }}</div>
-          <div class="stat-desc text-primary-content/60">比昨日 +12%</div>
+          <div class="stat-desc text-primary-content/60">比昨日 {{ detectionTrend >= 0 ? '+' : '' }}{{ detectionTrend }}%</div>
         </div>
       </div>
 
@@ -37,7 +37,7 @@
           </div>
           <div class="stat-title text-error-content/80">异常登录数</div>
           <div class="stat-value">{{ abnormalLogins }}</div>
-          <div class="stat-desc text-error-content/60">需要关注</div>
+          <div class="stat-desc text-error-content/60">比昨日 {{ maliciousTrend >= 0 ? '+' : '' }}{{ maliciousTrend }}%</div>
         </div>
       </div>
 
@@ -53,7 +53,7 @@
           </div>
           <div class="stat-title text-warning-content/80">威胁IP数量</div>
           <div class="stat-value">{{ threatIPs }}</div>
-          <div class="stat-desc text-warning-content/60">已拦截</div>
+          <div class="stat-desc text-warning-content/60">比昨日 {{ threatTrend >= 0 ? '+' : '' }}{{ threatTrend }}%</div>
         </div>
       </div>
 
@@ -81,45 +81,104 @@
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <!-- 最近警报列表 -->
-      <div class="lg:col-span-2">
+      <!-- 系统概览 -->
+      <div class="lg:col-span-2 space-y-6">
         <div class="card bg-base-100 shadow-xl">
           <div class="card-body">
             <div class="flex justify-between items-center mb-4">
-              <h2 class="card-title text-xl">最近警报</h2>
-              <div class="badge badge-error">{{ recentAlerts.length }} 条未处理</div>
+              <h2 class="card-title text-xl">系统概览</h2>
+              <div class="badge badge-info">实时数据</div>
             </div>
 
-            <div class="space-y-3 max-h-96 overflow-y-auto">
-              <div v-for="alert in recentAlerts" :key="alert.id"
-                class="alert shadow-sm hover:shadow-md transition-shadow cursor-pointer" :class="{
-                  'alert-error': alert.level === 'high',
-                  'alert-warning': alert.level === 'medium',
-                  'alert-info': alert.level === 'low'
-                }">
-                <div class="flex-1">
-                  <div class="flex justify-between items-start">
-                    <div>
-                      <h3 class="font-semibold">{{ alert.type }}</h3>
-                      <p class="text-sm opacity-80">{{ alert.description }}</p>
-                    </div>
-                    <div class="text-right">
-                      <div class="text-xs opacity-60">{{ alert.time }}</div>
-                      <div class="badge badge-sm mt-1" :class="{
-                        'badge-error': alert.level === 'high',
-                        'badge-warning': alert.level === 'medium',
-                        'badge-info': alert.level === 'low'
-                      }">
-                        {{ alert.level === 'high' ? '高危' : alert.level === 'medium' ? '中危' : '低危' }}
-                      </div>
-                    </div>
+            <div class="space-y-4">
+              <div class="stats shadow">
+                <div class="stat">
+                  <div class="stat-title">今日检测趋势</div>
+                  <div class="stat-value text-lg">{{ detectionTrend }}%</div>
+                  <div class="stat-desc" :class="detectionTrend >= 0 ? 'text-success' : 'text-error'">
+                    <span v-if="detectionTrend >= 0">↗</span>
+                    <span v-else>↘</span>
+                    相比昨日
+                  </div>
+                </div>
+              </div>
+              
+              <div class="stats shadow">
+                <div class="stat">
+                  <div class="stat-title">恶意登录趋势</div>
+                  <div class="stat-value text-lg">{{ maliciousTrend }}%</div>
+                  <div class="stat-desc" :class="maliciousTrend >= 0 ? 'text-success' : 'text-error'">
+                    <span v-if="maliciousTrend >= 0">↗</span>
+                    <span v-else>↘</span>
+                    相比昨日
+                  </div>
+                </div>
+              </div>
+              
+              <div class="stats shadow">
+                <div class="stat">
+                  <div class="stat-title">威胁趋势</div>
+                  <div class="stat-value text-lg">{{ threatTrend }}%</div>
+                  <div class="stat-desc" :class="threatTrend >= 0 ? 'text-success' : 'text-error'">
+                    <span v-if="threatTrend >= 0">↗</span>
+                    <span v-else>↘</span>
+                    相比昨日
                   </div>
                 </div>
               </div>
             </div>
 
             <div class="card-actions justify-end mt-4">
-              <button class="btn btn-outline btn-sm">查看全部</button>
+              <button class="btn btn-outline btn-sm">查看更多统计</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 最近检测历史 -->
+        <div class="card bg-base-100 shadow-xl">
+          <div class="card-body">
+            <div class="flex justify-between items-center mb-4">
+              <h2 class="card-title text-xl">最近检测历史</h2>
+              <div class="badge badge-primary">{{ (recentDetections && recentDetections.length) || 0 }} 条记录</div>
+            </div>
+
+            <div class="space-y-3 max-h-96 overflow-y-auto">
+              <div v-for="detection in recentDetections" :key="detection.id" 
+                class="alert shadow-sm hover:shadow-md transition-shadow" 
+                :class="{
+                  'alert-error': detection.is_malicious,
+                  'alert-warning': !detection.is_malicious && detection.risk_level === 'high',
+                  'alert-info': !detection.is_malicious && detection.risk_level === 'medium',
+                  'alert-success': !detection.is_malicious && detection.risk_level === 'low'
+                }">
+                <div class="flex-1">
+                  <div class="flex justify-between items-start">
+                    <div>
+                      <h3 class="font-semibold">{{ detection.ip_address }}</h3>
+                      <p class="text-sm opacity-80">用户: {{ detection.username }}</p>
+                      <p class="text-xs opacity-60 mt-1">{{ detection.location || '未知位置' }}</p>
+                    </div>
+                    <div class="text-right">
+                      <div class="text-xs opacity-60">{{ formatTime(detection.created_at) }}</div>
+                      <div class="badge badge-sm mt-1" :class="{
+                        'badge-error': detection.is_malicious,
+                        'badge-warning': !detection.is_malicious && detection.risk_level === 'high',
+                        'badge-info': !detection.is_malicious && detection.risk_level === 'medium',
+                        'badge-success': !detection.is_malicious && detection.risk_level === 'low'
+                      }">
+                        {{ detection.is_malicious ? '恶意登录' : detection.risk_level_display }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div v-if="!recentDetections || recentDetections.length === 0" class="text-center py-8 text-gray-500">
+                暂无检测记录
+              </div>
+            </div>
+
+            <div class="card-actions justify-end mt-4">
+              <button class="btn btn-outline btn-sm">查看全部记录</button>
             </div>
           </div>
         </div>
@@ -221,72 +280,120 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
+import { getDashboard, getDetectionRecords } from '@/api/PagesApis'
+import type { DashboardResponse, DetectionRecordsResponse, DetectionRecord } from '@/types/apis/PagesApis_T'
+import { ElMessage } from 'element-plus'
 
 // 响应式数据
-const todayDetections = ref(1247)
-const abnormalLogins = ref(23)
-const threatIPs = ref(156)
-const uptime = ref('7天 12小时')
+const todayDetections = ref(0)
+const abnormalLogins = ref(0)
+const threatIPs = ref(0)
+const uptime = ref('')
 const isDetecting = ref(true)
 const detectionInterval = ref(30)
 const sensitivity = ref('中')
-const lastUpdate = ref('2024-01-15')
-
-// 最近警报数据
-const recentAlerts = ref([
-  {
-    id: 1,
-    type: '暴力破解检测',
-    description: 'IP 192.168.1.100 在5分钟内尝试登录失败15次',
-    time: '2分钟前',
-    level: 'high'
-  },
-  {
-    id: 2,
-    type: '异常时间登录',
-    description: '用户admin在凌晨3:24登录系统',
-    time: '15分钟前',
-    level: 'medium'
-  },
-  {
-    id: 3,
-    type: '新IP检测',
-    description: '检测到来自新IP地址的登录尝试',
-    time: '32分钟前',
-    level: 'low'
-  },
-  {
-    id: 4,
-    type: '地理位置异常',
-    description: '用户从异常地理位置登录',
-    time: '1小时前',
-    level: 'medium'
-  },
-  {
-    id: 5,
-    type: '暴力破解检测',
-    description: 'IP 10.0.0.50 疑似进行密码暴力破解',
-    time: '2小时前',
-    level: 'high'
-  }
-])
+const lastUpdate = ref('')
+const detectionTrend = ref(0)
+const maliciousTrend = ref(0)
+const threatTrend = ref(0)
+const loading = ref(false)
+const recentDetections = ref<DetectionRecord[]>([])
 
 // 切换检测状态
 const toggleDetection = () => {
   isDetecting.value = !isDetecting.value
 }
 
+// 获取仪表板数据
+const fetchDashboardData = async () => {
+  const response: DashboardResponse = await getDashboard()
+  
+  console.log('获取仪表板数据响应:', response) // 添加调试日志
+  
+  if (response.code === 200 && response.data) {
+    todayDetections.value = response.data.today_detections
+    abnormalLogins.value = response.data.today_malicious
+    threatIPs.value = response.data.today_threat_ips
+    uptime.value = `${response.data.uptime_days}天`
+    detectionTrend.value = response.data.detection_trend
+    maliciousTrend.value = response.data.malicious_trend
+    threatTrend.value = response.data.threat_trend
+    lastUpdate.value = new Date().toLocaleDateString()
+    console.log('仪表板数据:', response.data) // 添加调试日志
+  } else {
+    ElMessage.error(response.msg || '获取数据失败')
+  }
+  return response
+}
+
+// 获取最近检测记录
+const fetchRecentDetections = async () => {
+  try {
+    const response: DetectionRecordsResponse = await getDetectionRecords({
+      page: 1,
+      page_size: 5
+    })
+    
+    console.log('获取检测记录响应:', response) // 添加调试日志
+    
+    if (response.code === 200 && response.data) {
+      // 由于API返回的记录按创建时间倒序排列，我们直接使用结果
+      recentDetections.value = response.data
+      console.log('检测记录数据:', response.data) // 添加调试日志
+    } else {
+      ElMessage.error(response.msg || '获取检测记录失败')
+      // 确保recentDetections是一个空数组而不是undefined
+      recentDetections.value = []
+    }
+  } catch (error) {
+    ElMessage.error('获取检测记录失败')
+    console.error('获取检测记录失败:', error)
+    // 确保recentDetections是一个空数组而不是undefined
+    recentDetections.value = []
+  }
+}
+
+// 格式化时间显示
+const formatTime = (timestamp: string) => {
+  const now = new Date()
+  const time = new Date(timestamp)
+  const diff = now.getTime() - time.getTime()
+  const minutes = Math.floor(diff / 60000)
+  const hours = Math.floor(diff / 3600000)
+  const days = Math.floor(diff / 86400000)
+  
+  if (minutes < 1) return '刚刚'
+  if (minutes < 60) return `${minutes}分钟前`
+  if (hours < 24) return `${hours}小时前`
+  return `${days}天前`
+}
+
+// 获取所有数据
+const fetchAllData = async () => {
+  try {
+    loading.value = true
+    await Promise.all([
+      fetchDashboardData(),
+      fetchRecentDetections()
+    ])
+  } catch (error) {
+    ElMessage.error('获取数据失败')
+    console.error('获取数据失败:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
 // 定时更新数据
 let updateInterval: number
 
 onMounted(() => {
+  // 初始加载数据
+  fetchAllData()
+  
   // 每30秒更新一次数据
   updateInterval = setInterval(() => {
-    // 模拟数据更新
-    todayDetections.value += Math.floor(Math.random() * 3)
-    if (Math.random() > 0.8) {
-      abnormalLogins.value += 1
-    }
+    fetchAllData()
   }, 30000)
 })
 

@@ -142,21 +142,17 @@ export interface DetectionRecordsParams {
   page_size?: number
   risk_level?: string
   is_malicious?: boolean
-  start_date?: string
-  end_date?: string
+  start_time?: string
+  end_time?: string
   ip_address?: string
   username?: string
+  status?: string
 }
 
 export interface DetectionRecordsResponse {
   code: number
   msg: string
-  data: {
-    count: number
-    next: string | null
-    previous: string | null
-    results: DetectionRecord[]
-  }
+  data: DetectionRecord[]
 }
 
 export interface CreateDetectionRecordRequest {
