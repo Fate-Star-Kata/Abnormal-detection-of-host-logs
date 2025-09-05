@@ -69,7 +69,7 @@
               value-format="YYYY-MM-DD HH:mm:ss" />
           </el-form-item>
           <el-form-item label="事件类型">
-            <el-select v-model="searchForm.eventType" placeholder="选择事件类型" clearable>
+            <el-select v-model="searchForm.eventType" placeholder="选择事件类型" clearable style="width: 180px;">
               <el-option label="全部" value="" />
               <el-option label="异常登录" value="login" />
               <el-option label="权限提升" value="privilege" />
@@ -79,7 +79,7 @@
             </el-select>
           </el-form-item>
           <el-form-item label="风险等级">
-            <el-select v-model="searchForm.riskLevel" placeholder="选择风险等级" clearable>
+            <el-select v-model="searchForm.riskLevel" placeholder="选择风险等级" clearable style="width: 180px;">
               <el-option label="全部" value="" />
               <el-option label="高危" value="high" />
               <el-option label="中危" value="medium" />
@@ -89,9 +89,7 @@
           <el-form-item label="源IP">
             <el-input v-model="searchForm.sourceIp" placeholder="输入源IP地址" clearable />
           </el-form-item>
-          <el-form-item label="关键词">
-            <el-input v-model="searchForm.keyword" placeholder="输入关键词搜索" clearable />
-          </el-form-item>
+
           <el-form-item>
             <el-button type="primary" :icon="Search" @click="handleSearch">搜索</el-button>
             <el-button @click="resetSearch">重置</el-button>
@@ -105,25 +103,27 @@
       <el-table :data="recordList" v-loading="loading" @selection-change="handleSelectionChange"
         @sort-change="handleSortChange" stripe border style="width: 100%">
         <el-table-column type="selection" width="55" />
-        <el-table-column prop="id" label="记录ID" width="100" sortable="custom" />
-        <el-table-column prop="eventType" label="事件类型" width="120">
+        <el-table-column prop="id" label="记录ID" sortable="custom" />
+        <el-table-column prop="username" label="用户名" />
+        <el-table-column prop="risk_level" label="风险等级">
           <template #default="{ row }">
-            <el-tag :type="getEventTypeColor(row.eventType)">{{ getEventTypeName(row.eventType) }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="riskLevel" label="风险等级" width="100">
-          <template #default="{ row }">
-            <el-tag :type="getRiskLevelColor(row.riskLevel)" size="small">
-              {{ getRiskLevelName(row.riskLevel) }}
+            <el-tag :type="getRiskLevelColor(row.risk_level)" size="small">
+              {{ getRiskLevelName(row.risk_level) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="sourceIp" label="源IP" width="140" />
-        <el-table-column prop="targetHost" label="目标主机" width="140" />
-        <el-table-column prop="username" label="用户名" width="120" />
-        <el-table-column prop="description" label="事件描述" min-width="200" show-overflow-tooltip />
-        <el-table-column prop="detectionTime" label="检测时间" width="180" sortable="custom" />
-        <el-table-column prop="status" label="处理状态" width="100">
+        <el-table-column prop="ip_address" label="源IP" />
+        <el-table-column prop="location" label="位置" />
+        <el-table-column prop="risk_score" label="风险评分" />
+        <el-table-column prop="is_malicious" label="是否恶意">
+          <template #default="{ row }">
+            <el-tag :type="row.is_malicious ? 'danger' : 'success'" size="small">
+              {{ row.is_malicious ? '是' : '否' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="login_time" label="登录时间" sortable="custom" />
+        <el-table-column prop="status" label="处理状态">
           <template #default="{ row }">
             <el-tag :type="getStatusColor(row.status)" size="small">
               {{ getStatusName(row.status) }}
@@ -160,15 +160,13 @@
             <p class="text-sm text-gray-900">{{ currentRecord.id }}</p>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">事件类型</label>
-            <el-tag :type="getEventTypeColor(currentRecord.eventType)">
-              {{ getEventTypeName(currentRecord.eventType) }}
-            </el-tag>
+            <label class="block text-sm font-medium text-gray-700 mb-1">用户名</label>
+            <p class="text-sm text-gray-900">{{ currentRecord.username }}</p>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">风险等级</label>
-            <el-tag :type="getRiskLevelColor(currentRecord.riskLevel)">
-              {{ getRiskLevelName(currentRecord.riskLevel) }}
+            <el-tag :type="getRiskLevelColor(currentRecord.risk_level)">
+              {{ getRiskLevelName(currentRecord.risk_level) }}
             </el-tag>
           </div>
           <div>
@@ -179,29 +177,30 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">源IP地址</label>
-            <p class="text-sm text-gray-900">{{ currentRecord.sourceIp }}</p>
+            <p class="text-sm text-gray-900">{{ currentRecord.ip_address }}</p>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">目标主机</label>
-            <p class="text-sm text-gray-900">{{ currentRecord.targetHost }}</p>
+            <label class="block text-sm font-medium text-gray-700 mb-1">位置</label>
+            <p class="text-sm text-gray-900">{{ currentRecord.location || '未知' }}</p>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">用户名</label>
-            <p class="text-sm text-gray-900">{{ currentRecord.username }}</p>
+            <label class="block text-sm font-medium text-gray-700 mb-1">风险评分</label>
+            <p class="text-sm text-gray-900">{{ currentRecord.risk_score }}</p>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">检测时间</label>
-            <p class="text-sm text-gray-900">{{ currentRecord.detectionTime }}</p>
+            <label class="block text-sm font-medium text-gray-700 mb-1">登录时间</label>
+            <p class="text-sm text-gray-900">{{ currentRecord.login_time }}</p>
           </div>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">事件描述</label>
-          <p class="text-sm text-gray-900 bg-gray-50 p-3 rounded">{{ currentRecord.description }}</p>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">详细日志</label>
-          <pre class="text-xs text-gray-700 bg-gray-900 text-green-400 p-4 rounded overflow-auto max-h-60">{{
-            currentRecord.rawLog }}</pre>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">是否恶意</label>
+            <el-tag :type="currentRecord.is_malicious ? 'danger' : 'success'">
+              {{ currentRecord.is_malicious ? '是' : '否' }}
+            </el-tag>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">创建时间</label>
+            <p class="text-sm text-gray-900">{{ currentRecord.created_at }}</p>
+          </div>
         </div>
       </div>
       <template #footer>
@@ -213,7 +212,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive } from 'vue'
+import { ref, onMounted, reactive, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   Download,
@@ -225,26 +224,40 @@ import {
   InfoFilled,
   Plus
 } from '@element-plus/icons-vue'
+import {
+  getAdminDetectionRecords,
+  deleteAdminDetectionRecord
+} from '@/api/adminApis'
+import { updateDetectionRecordStatus } from '@/api/admin/common'
+import type { DetectionRecord, GetDetectionRecordsBody } from '@/types/apis/admin/common'
 
 // 响应式数据
 const loading = ref(false)
 const detailVisible = ref(false)
-const selectedRecords = ref([])
-const currentRecord = ref(null)
+const selectedRecords = ref<DetectionRecord[]>([])
+const currentRecord = ref<DetectionRecord | null>(null)
+const recordList = ref<DetectionRecord[]>([])
+const totalRecords = ref(0)
 
-// 统计数据
-const statistics = ref({
-  total: 1256,
-  high: 89,
-  medium: 234,
-  today: 45
+// 统计数据计算属性
+const statistics = computed(() => {
+  const total = totalRecords.value
+  const records = recordList.value || []
+  const high = records.filter(record => record.risk_level === 'high').length
+  const medium = records.filter(record => record.risk_level === 'medium').length
+  const today = records.filter(record => {
+    const today = new Date().toDateString()
+    return new Date(record.created_at).toDateString() === today
+  }).length
+
+  return { total, high, medium, today }
 })
 
 // 搜索表单
 const searchForm = reactive({
-  dateRange: [],
+  dateRange: [] as string[],
   eventType: '',
-  riskLevel: '',
+  riskLevel: '' as '' | 'high' | 'medium' | 'low',
   sourceIp: '',
   keyword: ''
 })
@@ -253,164 +266,114 @@ const searchForm = reactive({
 const pagination = reactive({
   currentPage: 1,
   pageSize: 20,
-  total: 1256
+  total: 0
 })
 
-// 记录列表
-const recordList = ref([
-  {
-    id: 'REC001',
-    eventType: 'login',
-    riskLevel: 'high',
-    sourceIp: '192.168.1.100',
-    targetHost: 'web-server-01',
-    username: 'admin',
-    description: '检测到异常登录行为，多次失败后成功登录',
-    detectionTime: '2024-01-15 14:30:25',
-    status: 'pending',
-    rawLog: '2024-01-15 14:30:25 [WARNING] Failed login attempt from 192.168.1.100 for user admin\n2024-01-15 14:30:26 [WARNING] Failed login attempt from 192.168.1.100 for user admin\n2024-01-15 14:30:27 [INFO] Successful login from 192.168.1.100 for user admin'
-  },
-  {
-    id: 'REC002',
-    eventType: 'privilege',
-    riskLevel: 'high',
-    sourceIp: '10.0.0.50',
-    targetHost: 'db-server-01',
-    username: 'user01',
-    description: '检测到权限提升行为，普通用户获得管理员权限',
-    detectionTime: '2024-01-15 14:25:10',
-    status: 'processed',
-    rawLog: '2024-01-15 14:25:10 [ALERT] User user01 elevated privileges to administrator'
-  },
-  {
-    id: 'REC003',
-    eventType: 'file',
-    riskLevel: 'medium',
-    sourceIp: '172.16.0.25',
-    targetHost: 'file-server-01',
-    username: 'user02',
-    description: '检测到敏感文件访问，访问了系统配置文件',
-    detectionTime: '2024-01-15 14:20:45',
-    status: 'pending',
-    rawLog: '2024-01-15 14:20:45 [WARNING] Sensitive file access: /etc/passwd by user02'
-  },
-  {
-    id: 'REC004',
-    eventType: 'network',
-    riskLevel: 'low',
-    sourceIp: '192.168.1.200',
-    targetHost: 'app-server-01',
-    username: 'service',
-    description: '检测到异常网络连接，连接到未知外部服务器',
-    detectionTime: '2024-01-15 14:15:30',
-    status: 'ignored',
-    rawLog: '2024-01-15 14:15:30 [INFO] Outbound connection to 203.0.113.50:8080'
-  },
-  {
-    id: 'REC005',
-    eventType: 'system',
-    riskLevel: 'medium',
-    sourceIp: '203.0.113.10',
-    targetHost: 'web-server-02',
-    username: 'www-data',
-    description: '检测到异常系统调用，可能存在代码注入',
-    detectionTime: '2024-01-15 14:10:15',
-    status: 'pending',
-    rawLog: '2024-01-15 14:10:15 [ALERT] Suspicious system call detected: execve()'
+// 加载检测记录数据
+const loadDetectionRecords = async () => {
+  try {
+    loading.value = true
+    const params: GetDetectionRecordsBody = {
+      page: pagination.currentPage,
+      page_size: pagination.pageSize
+    }
+
+    // 添加搜索条件
+    if (searchForm.riskLevel) {
+      params.risk_level = searchForm.riskLevel
+    }
+    if (searchForm.sourceIp) {
+      params.ip_address = searchForm.sourceIp
+    }
+    if (searchForm.dateRange && searchForm.dateRange.length === 2) {
+      params.start_time = searchForm.dateRange[0]
+      params.end_time = searchForm.dateRange[1]
+    }
+
+    const response = await getAdminDetectionRecords(params)
+    if (response.code === 200) {
+      recordList.value = response.data
+      totalRecords.value = response.data.length
+      pagination.total = response.data.length
+    } else {
+      ElMessage.error(response.msg || '获取检测记录失败')
+    }
+  } catch (error) {
+    console.error('获取检测记录失败:', error)
+    ElMessage.error('获取检测记录失败')
+  } finally {
+    loading.value = false
   }
-])
+}
 
 // 工具函数
-const getEventTypeName = (type: string) => {
-  const names = {
-    login: '异常登录',
-    privilege: '权限提升',
-    file: '文件操作',
-    network: '网络访问',
-    system: '系统调用'
-  }
-  return names[type] || type
-}
 
-const getEventTypeColor = (type: string) => {
-  const colors = {
-    login: 'danger',
-    privilege: 'danger',
-    file: 'warning',
-    network: 'info',
-    system: 'warning'
-  }
-  return colors[type] || 'info'
-}
+// 定义风险等级类型
+type RiskLevel = 'high' | 'medium' | 'low'
 
-const getRiskLevelName = (level: string) => {
-  const names = {
+const getRiskLevelName = (level: RiskLevel | string): string => {
+  const names: Record<RiskLevel, string> = {
     high: '高危',
     medium: '中危',
     low: '低危'
   }
-  return names[level] || level
+  return names[level as RiskLevel] || level
 }
 
-const getRiskLevelColor = (level: string) => {
-  const colors = {
+const getRiskLevelColor = (level: RiskLevel | string): string => {
+  const colors: Record<RiskLevel, string> = {
     high: 'danger',
     medium: 'warning',
     low: 'info'
   }
-  return colors[level] || 'info'
+  return colors[level as RiskLevel] || 'info'
 }
 
 const getStatusName = (status: string) => {
-  const names = {
+  const names: Record<string, string> = {
     pending: '待处理',
-    processed: '已处理',
-    ignored: '已忽略'
+    investigating: '调查中',
+    resolved: '已解决',
+    false_positive: '误报'
   }
-  return names[status] || status
+  return names[status as keyof typeof names] || status
 }
 
 const getStatusColor = (status: string) => {
   const colors = {
     pending: 'warning',
-    processed: 'success',
-    ignored: 'info'
+    investigating: 'info',
+    resolved: 'success',
+    false_positive: 'info'
   }
-  return colors[status] || 'info'
+  return colors[status as keyof typeof colors] || 'info'
 }
 
 // 事件处理函数
 const refreshData = async () => {
-  loading.value = true
-  // 模拟数据刷新
-  setTimeout(() => {
-    loading.value = false
-    ElMessage.success('数据刷新成功')
-  }, 1000)
+  await loadDetectionRecords()
+  ElMessage.success('数据刷新成功')
 }
 
 const handleSearch = () => {
   pagination.currentPage = 1
-  // 执行搜索逻辑
-  ElMessage.info('搜索功能待实现')
+  loadDetectionRecords()
 }
 
 const resetSearch = () => {
   Object.assign(searchForm, {
     dateRange: [],
     eventType: '',
-    riskLevel: '',
+    riskLevel: '' as '' | 'high' | 'medium' | 'low',
     sourceIp: '',
     keyword: ''
   })
   handleSearch()
 }
 
-const handleSelectionChange = (selection: any[]) => {
-  selectedRecords.value = selection
-}
 
-const handleSortChange = ({ column, prop, order }) => {
+
+const handleSortChange = ({ column, prop, order }: { column: any; prop: string; order: string }) => {
   // 处理排序逻辑
   console.log('排序:', prop, order)
 }
@@ -418,43 +381,67 @@ const handleSortChange = ({ column, prop, order }) => {
 const handleSizeChange = (size: number) => {
   pagination.pageSize = size
   pagination.currentPage = 1
-  // 重新加载数据
+  loadDetectionRecords()
 }
 
 const handleCurrentChange = (page: number) => {
   pagination.currentPage = page
-  // 重新加载数据
+  loadDetectionRecords()
 }
 
-const viewDetail = (record: any) => {
+const viewDetail = (record: DetectionRecord) => {
   currentRecord.value = record
   detailVisible.value = true
 }
 
-const markAsProcessed = async (record: any) => {
+
+
+// 其他事件处理函数
+const handleSelectionChange = (selection: DetectionRecord[]) => {
+  selectedRecords.value = selection
+}
+
+const markAsProcessed = async (record: DetectionRecord) => {
+  await handleStatusChange(record, 'resolved')
+}
+
+const handleStatusChange = async (record: DetectionRecord, status: string) => {
   try {
-    await ElMessageBox.confirm('确认将此记录标记为已处理？', '确认操作', {
-      type: 'warning'
+    const response = await updateDetectionRecordStatus(record.id, {
+      status: status as "pending" | "investigating" | "resolved" | "false_positive"
     })
-    record.status = 'processed'
-    ElMessage.success('标记成功')
-  } catch {
-    // 用户取消
+    if (response.code === 200) {
+      record.status = status as "pending" | "investigating" | "resolved" | "false_positive" | "ignored"
+      ElMessage.success('状态更新成功')
+      // 重新加载数据以确保状态同步
+      loadDetectionRecords()
+    } else {
+      ElMessage.error(response.msg || '状态更新失败')
+    }
+  } catch (error) {
+    console.error('状态更新失败:', error)
+    ElMessage.error('状态更新失败')
   }
 }
 
-const deleteRecord = async (record: any) => {
+const deleteRecord = async (record: DetectionRecord) => {
   try {
-    await ElMessageBox.confirm('确认删除此检测记录？删除后无法恢复。', '确认删除', {
+    await ElMessageBox.confirm('确定要删除这条记录吗？', '确认删除', {
       type: 'warning'
     })
-    const index = recordList.value.findIndex(item => item.id === record.id)
-    if (index > -1) {
-      recordList.value.splice(index, 1)
+
+    const response = await deleteAdminDetectionRecord(record.id)
+    if (response.code === 200) {
       ElMessage.success('删除成功')
+      loadDetectionRecords()
+    } else {
+      ElMessage.error(response.msg || '删除失败')
     }
-  } catch {
-    // 用户取消
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除记录失败:', error)
+      ElMessage.error('删除失败')
+    }
   }
 }
 
@@ -465,14 +452,23 @@ const batchDelete = async () => {
   }
 
   try {
-    await ElMessageBox.confirm(`确认删除选中的 ${selectedRecords.value.length} 条记录？删除后无法恢复。`, '批量删除', {
+    await ElMessageBox.confirm(`确定要删除选中的 ${selectedRecords.value.length} 条记录吗？`, '确认批量删除', {
       type: 'warning'
     })
-    // 执行批量删除逻辑
-    ElMessage.success(`成功删除 ${selectedRecords.value.length} 条记录`)
+
+    // 批量删除逻辑
+    for (const record of selectedRecords.value) {
+      await deleteAdminDetectionRecord(record.id)
+    }
+
+    ElMessage.success('批量删除成功')
     selectedRecords.value = []
-  } catch {
-    // 用户取消
+    loadDetectionRecords()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('批量删除失败:', error)
+      ElMessage.error('批量删除失败')
+    }
   }
 }
 
@@ -482,11 +478,11 @@ const exportRecords = () => {
 
 const exportSingleRecord = () => {
   ElMessage.info('单条记录导出功能待实现')
-  detailVisible.value = false
 }
 
+// 组件挂载时加载数据
 onMounted(() => {
-  refreshData()
+  loadDetectionRecords()
 })
 </script>
 

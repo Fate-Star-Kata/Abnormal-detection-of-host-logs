@@ -47,17 +47,17 @@ export interface DetectionRecord {
   id: number;
   ip_address: string;
   username: string;
-  login_time: Date;
+  login_time: string;
   risk_score: number;
-  risk_level: "high" | "medium" | "low";
-  risk_level_display: "高" | "中" | "低";
+  risk_level: "high" | "medium" | "low" | "minimal";
+  risk_level_display: string;
   is_malicious: boolean;
   location: string;
-  status: "pending" | "investigating" | "resolved" | "false_positive";
-  status_display: "待处理" | "调查中" | "已解决" | "误报";
-  notes: string;
-  created_at: Date;
-  updated_at: Date;
+  status: "pending" | "investigating" | "resolved" | "false_positive" | "ignored";
+  status_display: string;
+  notes?: string;
+  created_at: string;
+  updated_at?: string;
 }
 
 export interface DetectionRecordsList {
@@ -67,10 +67,10 @@ export interface DetectionRecordsList {
   records: DetectionRecord[];
 }
 
-export interface DetectionRecordsResponse extends Response<DetectionRecordsList> {
+export interface DetectionRecordsResponse extends Response<DetectionRecord[]> {
   code: number;
   msg: string;
-  data: DetectionRecordsList;
+  data: DetectionRecord[];
 }
 
 export interface CreateDetectionRecordBody {
@@ -154,7 +154,7 @@ export interface UserResponse extends Response<User> {
 
 // ===== 检测规则配置接口 =====
 
-export interface GetDetectionRulesBody {
+export interface GetDetectionConfigsBody {
   page?: number;
   page_size?: number;
   name?: string;
@@ -162,7 +162,7 @@ export interface GetDetectionRulesBody {
   status?: "active" | "inactive";
 }
 
-export interface DetectionRule {
+export interface DetectionConfig {
   id: number;
   name: string;
   description: string;
@@ -181,20 +181,20 @@ interface RuleConfig {
   actions?: string[];
 }
 
-export interface DetectionRulesList {
+export interface DetectionConfigsList {
   total: number;
   page: number;
   page_size: number;
-  rules: DetectionRule[];
+  rules: DetectionConfig[];
 }
 
-export interface DetectionRulesResponse extends Response<DetectionRulesList> {
+export interface DetectionConfigsResponse extends Response<DetectionConfigsList> {
   code: number;
   msg: string;
-  data: DetectionRulesList;
+  data: DetectionConfigsList;
 }
 
-export interface CreateDetectionRuleBody {
+export interface CreateDetectionConfigBody {
   name: string;
   description: string;
   type: "brute_force" | "suspicious_location" | "time_anomaly" | "custom";
@@ -202,7 +202,7 @@ export interface CreateDetectionRuleBody {
   priority?: number;
 }
 
-export interface UpdateDetectionRuleBody {
+export interface UpdateDetectionConfigBody {
   name?: string;
   description?: string;
   config?: RuleConfig;
@@ -210,10 +210,10 @@ export interface UpdateDetectionRuleBody {
   priority?: number;
 }
 
-export interface DetectionRuleResponse extends Response<DetectionRule> {
+export interface DetectionConfigResponse extends Response<DetectionConfig> {
   code: number;
   msg: string;
-  data: DetectionRule;
+  data: DetectionConfig;
 }
 
 // ===== 通知配置管理接口 =====

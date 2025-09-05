@@ -1,24 +1,50 @@
 <script setup lang="ts">
 import { Motion } from 'motion-v'
 import { Refresh, Warning, User, Setting, Monitor } from '@element-plus/icons-vue'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
+import { getDashboard, getRealtimeDetection } from '@/api/adminApis'
+import type { DashboardResponse, RealtimeDetectionResponse } from '@/types/apis/PagesApis_T'
+import { ElMessage } from 'element-plus'
+import { getDetection } from '../../../api/user/common';
 
 const loading = ref(false)
-const systemStats = ref({
-  totalUsers: 1234,
-  activeRules: 45,
-  pendingAlerts: 23,
-  systemLoad: 68
+const dashboardData = ref<DashboardResponse['data'] | null>(null)
+const realtimeData = ref<RealtimeDetectionResponse | null>(null)
+
+// 计算属性：系统统计数据
+const systemStats = computed(() => {
+  if (!dashboardData.value) {
+    return {
+      todayDetections: 0,
+      todayMalicious: 0,
+      todayThreatIps: 0,
+      systemStatus: 'unknown',
+      uptimeDays: 0
+    }
+  }
+  return {
+    todayDetections: dashboardData.value.today_detections,
+    todayMalicious: dashboardData.value.today_malicious,
+    todayThreatIps: dashboardData.value.today_threat_ips,
+    systemStatus: dashboardData.value.system_status,
+    uptimeDays: dashboardData.value.uptime_days
+  }
 })
 
-const recentAlerts = ref([
-  { id: 1, type: '高危登录', source: '192.168.1.100', time: '2024-01-15 14:30:25', level: 'high' },
-  { id: 2, type: '异常访问', source: '10.0.0.50', time: '2024-01-15 14:25:10', level: 'medium' },
-  { id: 3, type: '权限提升', source: '172.16.0.25', time: '2024-01-15 14:20:45', level: 'high' },
-  { id: 4, type: '文件异常', source: '192.168.1.200', time: '2024-01-15 14:15:30', level: 'low' },
-  { id: 5, type: '网络扫描', source: '203.0.113.10', time: '2024-01-15 14:10:15', level: 'medium' }
-])
+// 最近告警数据 - 从实时检测API获取
+const recentAlerts = computed(() => {
+  if (!realtimeData.value?.recent_detections) return []
 
+  return realtimeData.value.recent_detections.slice(0, 4).map(detection => ({
+    id: detection.id,
+    type: detection.is_malicious ? '恶意登录检测' : '登录检测',
+    source: `${detection.ip_address} (${detection.username})`,
+    time: new Date(detection.created_at).toLocaleString('zh-CN'),
+    level: detection.risk_level === 'high' ? 'high' : detection.risk_level === 'medium' ? 'medium' : 'low'
+  }))
+})
+
+// 系统性能数据（暂时保持静态，后续可扩展）
 const systemPerformance = ref({
   cpu: 45,
   memory: 68,
@@ -28,10 +54,23 @@ const systemPerformance = ref({
 
 const refreshData = async () => {
   loading.value = true
-  // 模拟数据刷新
-  setTimeout(() => {
+  try {
+    // 并行请求仪表板数据和实时检测数据
+    const [dashboardRes, realtimeRes] = await Promise.all([
+      getDashboard(),
+      getRealtimeDetection()
+    ])
+
+    dashboardData.value = dashboardRes.data
+    realtimeData.value = realtimeRes.data as unknown as RealtimeDetectionResponse
+
+    ElMessage.success('数据刷新成功')
+  } catch (error) {
+    console.error('获取仪表板数据失败:', error)
+    ElMessage.error('数据获取失败，请稍后重试')
+  } finally {
     loading.value = false
-  }, 1000)
+  }
 }
 
 const getLevelColor = (level: string) => {
@@ -116,12 +155,12 @@ const iconVariants = {
             class="bg-blue-50 p-6 rounded-lg cursor-pointer">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-blue-600 text-sm font-medium">系统用户数</p>
+                <p class="text-blue-600 text-sm font-medium">今日检测数</p>
                 <Motion :initial="{ opacity: 0, y: 10 }" :animate="{ opacity: 1, y: 0 }"
                   :transition="{ duration: 0.4, delay: 0.6 }">
-                  <p class="text-2xl font-bold text-blue-900">{{ systemStats.totalUsers }}</p>
+                  <p class="text-2xl font-bold text-blue-900">{{ systemStats.todayDetections }}</p>
                 </Motion>
-                <p class="text-xs text-blue-500 mt-1">+12 今日新增</p>
+                <p class="text-xs text-blue-500 mt-1">检测趋势: {{ dashboardData?.detection_trend || 0 }}%</p>
               </div>
               <Motion :initial="iconVariants.initial" :animate="iconVariants.animate"
                 :whileHover="iconVariants.whileHover as any"
@@ -139,12 +178,12 @@ const iconVariants = {
             class="bg-green-50 p-6 rounded-lg cursor-pointer">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-green-600 text-sm font-medium">活跃检测规则</p>
+                <p class="text-green-600 text-sm font-medium">今日恶意检测</p>
                 <Motion :initial="{ opacity: 0, y: 10 }" :animate="{ opacity: 1, y: 0 }"
                   :transition="{ duration: 0.4, delay: 0.7 }">
-                  <p class="text-2xl font-bold text-green-900">{{ systemStats.activeRules }}</p>
+                  <p class="text-2xl font-bold text-green-900">{{ systemStats.todayMalicious }}</p>
                 </Motion>
-                <p class="text-xs text-green-500 mt-1">运行正常</p>
+                <p class="text-xs text-green-500 mt-1">恶意趋势: {{ dashboardData?.malicious_trend || 0 }}%</p>
               </div>
               <Motion :initial="iconVariants.initial" :animate="iconVariants.animate"
                 :whileHover="iconVariants.whileHover as any"
@@ -162,12 +201,12 @@ const iconVariants = {
             class="bg-red-50 p-6 rounded-lg cursor-pointer">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-red-600 text-sm font-medium">待处理告警</p>
+                <p class="text-red-600 text-sm font-medium">威胁IP数量</p>
                 <Motion :initial="{ opacity: 0, y: 10 }" :animate="{ opacity: 1, y: 0 }"
                   :transition="{ duration: 0.4, delay: 0.8 }">
-                  <p class="text-2xl font-bold text-red-900">{{ systemStats.pendingAlerts }}</p>
+                  <p class="text-2xl font-bold text-red-900">{{ systemStats.todayThreatIps }}</p>
                 </Motion>
-                <p class="text-xs text-red-500 mt-1">需要关注</p>
+                <p class="text-xs text-red-500 mt-1">威胁趋势: {{ dashboardData?.threat_trend || 0 }}%</p>
               </div>
               <Motion :initial="iconVariants.initial" :animate="iconVariants.animate"
                 :whileHover="iconVariants.whileHover as any"
@@ -185,12 +224,12 @@ const iconVariants = {
             class="bg-purple-50 p-6 rounded-lg cursor-pointer">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-purple-600 text-sm font-medium">系统负载</p>
+                <p class="text-purple-600 text-sm font-medium">系统运行天数</p>
                 <Motion :initial="{ opacity: 0, y: 10 }" :animate="{ opacity: 1, y: 0 }"
                   :transition="{ duration: 0.4, delay: 0.9 }">
-                  <p class="text-2xl font-bold text-purple-900">{{ systemStats.systemLoad }}%</p>
+                  <p class="text-2xl font-bold text-purple-900">{{ systemStats.uptimeDays }}</p>
                 </Motion>
-                <p class="text-xs text-purple-500 mt-1">运行良好</p>
+                <p class="text-xs text-purple-500 mt-1">状态: {{ systemStats.systemStatus }}</p>
               </div>
               <Motion :initial="iconVariants.initial" :animate="iconVariants.animate"
                 :whileHover="iconVariants.whileHover as any"
@@ -219,13 +258,14 @@ const iconVariants = {
             </div>
           </template>
           <div class="space-y-3">
-            <Motion v-for="(alert, index) in recentAlerts" :key="alert.id"
-              :initial="{ opacity: 0, x: -20 }" :animate="{ opacity: 1, x: 0 }"
-              :transition="{ duration: 0.3, delay: 1.0 + index * 0.1 }"
+            <Motion v-for="(alert, index) in recentAlerts" :key="alert.id" :initial="{ opacity: 0, x: -20 }"
+              :animate="{ opacity: 1, x: 0 }" :transition="{ duration: 0.3, delay: 1.0 + index * 0.1 }"
               class="flex items-center justify-between p-3 rounded-lg border hover:bg-gray-50 transition-colors">
               <div class="flex items-center space-x-3">
                 <div :class="[getLevelBg(alert.level), 'w-3 h-3 rounded-full']">
-                  <div :class="[getLevelColor(alert.level).replace('text-', 'bg-'), 'w-full h-full rounded-full opacity-60']"></div>
+                  <div
+                    :class="[getLevelColor(alert.level).replace('text-', 'bg-'), 'w-full h-full rounded-full opacity-60']">
+                  </div>
                 </div>
                 <div>
                   <p class="font-medium text-sm">{{ alert.type }}</p>
@@ -234,7 +274,8 @@ const iconVariants = {
               </div>
               <div class="text-right">
                 <p class="text-xs text-gray-500">{{ alert.time }}</p>
-                <span :class="[getLevelColor(alert.level), 'text-xs font-medium']">{{ alert.level.toUpperCase() }}</span>
+                <span :class="[getLevelColor(alert.level), 'text-xs font-medium']">{{ alert.level.toUpperCase()
+                }}</span>
               </div>
             </Motion>
           </div>
@@ -253,13 +294,14 @@ const iconVariants = {
               :initial="{ opacity: 0, y: 20 }" :animate="{ opacity: 1, y: 0 }"
               :transition="{ duration: 0.4, delay: 1.1 + index * 0.1 }">
               <div class="flex items-center justify-between">
-                <span class="text-sm font-medium capitalize">{{ item[0] === 'cpu' ? 'CPU' : item[0] === 'memory' ? '内存' : item[0] === 'disk' ? '磁盘' : '网络' }}</span>
+                <span class="text-sm font-medium capitalize">{{ item[0] === 'cpu' ? 'CPU' : item[0] === 'memory' ? '内存'
+                  :
+                  item[0] === 'disk' ? '磁盘' : '网络' }}</span>
                 <span class="text-sm text-gray-600">{{ item[1] }}%</span>
               </div>
               <div class="w-full bg-gray-200 rounded-full h-2">
                 <Motion :initial="{ width: 0 }" :animate="{ width: `${item[1]}%` }"
-                  :transition="{ duration: 0.8, delay: 1.3 + index * 0.1 }"
-                  :class="[
+                  :transition="{ duration: 0.8, delay: 1.3 + index * 0.1 }" :class="[
                     'h-2 rounded-full transition-all duration-300',
                     item[1] > 80 ? 'bg-red-500' : item[1] > 60 ? 'bg-yellow-500' : 'bg-green-500'
                   ]">

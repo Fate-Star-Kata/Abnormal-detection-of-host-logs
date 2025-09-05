@@ -119,7 +119,7 @@ export function updateDetectionRecordStatus(
 ): Promise<DetectionRecordResponse> {
   return serviceAxios({
     url: `/malicious/detectionRecords/${id}/update_status/`,
-    method: "patch",
+    method: "post",
     data,
   });
 }
