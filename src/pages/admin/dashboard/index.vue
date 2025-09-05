@@ -2,7 +2,7 @@
 import { Motion } from 'motion-v'
 import { Refresh, Warning, User, Setting, Monitor } from '@element-plus/icons-vue'
 import { ref, onMounted, computed } from 'vue'
-import { getDashboard, getRealtimeDetection } from '@/api/PagesApis'
+import { getDashboard, getRealtimeDetection } from '@/api/adminApis'
 import type { DashboardResponse, RealtimeDetectionResponse } from '@/types/apis/PagesApis_T'
 import { ElMessage } from 'element-plus'
 import { getDetection } from '../../../api/user/common';

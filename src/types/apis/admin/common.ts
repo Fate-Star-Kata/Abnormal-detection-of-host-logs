@@ -154,7 +154,7 @@ export interface UserResponse extends Response<User> {
 
 // ===== 检测规则配置接口 =====
 
-export interface GetDetectionRulesBody {
+export interface GetDetectionConfigsBody {
   page?: number;
   page_size?: number;
   name?: string;
@@ -162,7 +162,7 @@ export interface GetDetectionRulesBody {
   status?: "active" | "inactive";
 }
 
-export interface DetectionRule {
+export interface DetectionConfig {
   id: number;
   name: string;
   description: string;
@@ -181,20 +181,20 @@ interface RuleConfig {
   actions?: string[];
 }
 
-export interface DetectionRulesList {
+export interface DetectionConfigsList {
   total: number;
   page: number;
   page_size: number;
-  rules: DetectionRule[];
+  rules: DetectionConfig[];
 }
 
-export interface DetectionRulesResponse extends Response<DetectionRulesList> {
+export interface DetectionConfigsResponse extends Response<DetectionConfigsList> {
   code: number;
   msg: string;
-  data: DetectionRulesList;
+  data: DetectionConfigsList;
 }
 
-export interface CreateDetectionRuleBody {
+export interface CreateDetectionConfigBody {
   name: string;
   description: string;
   type: "brute_force" | "suspicious_location" | "time_anomaly" | "custom";
@@ -202,7 +202,7 @@ export interface CreateDetectionRuleBody {
   priority?: number;
 }
 
-export interface UpdateDetectionRuleBody {
+export interface UpdateDetectionConfigBody {
   name?: string;
   description?: string;
   config?: RuleConfig;
@@ -210,10 +210,10 @@ export interface UpdateDetectionRuleBody {
   priority?: number;
 }
 
-export interface DetectionRuleResponse extends Response<DetectionRule> {
+export interface DetectionConfigResponse extends Response<DetectionConfig> {
   code: number;
   msg: string;
-  data: DetectionRule;
+  data: DetectionConfig;
 }
 
 // ===== 通知配置管理接口 =====

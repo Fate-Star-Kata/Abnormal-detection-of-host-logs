@@ -227,7 +227,7 @@ import {
 import {
   getAdminDetectionRecords,
   deleteAdminDetectionRecord
-} from '@/api/PagesApis'
+} from '@/api/adminApis'
 import { updateDetectionRecordStatus } from '@/api/admin/common'
 import type { DetectionRecord, GetDetectionRecordsBody } from '@/types/apis/admin/common'
 

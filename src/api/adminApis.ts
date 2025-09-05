@@ -31,11 +31,11 @@ import type {
   CreateUserBody,
   UpdateUserBody,
   UserResponse,
-  DetectionRulesResponse,
-  GetDetectionRulesBody,
-  CreateDetectionRuleBody,
-  UpdateDetectionRuleBody,
-  DetectionRuleResponse,
+  DetectionConfigsResponse,
+  GetDetectionConfigsBody,
+  CreateDetectionConfigBody,
+  UpdateDetectionConfigBody,
+  DetectionConfigResponse,
   NotificationConfigsResponse,
   GetNotificationConfigsBody,
   CreateNotificationConfigBody as AdminCreateNotificationConfigBody,
@@ -222,41 +222,41 @@ export function deleteUser(id: number): Promise<void> {
   })
 }
 
-// 检测规则配置相关API
-export function getDetectionRules(params?: GetDetectionRulesBody): Promise<DetectionRulesResponse> {
+// 检测配置相关API
+export function getDetectionConfigs(params?: GetDetectionConfigsBody): Promise<DetectionConfigsResponse> {
   return serviceAxios({
-    url: '/malicious/admin/detection-rules/',
+    url: '/malicious/detection-configs/',
     method: 'get',
     params
   })
 }
 
-export function createDetectionRule(data: CreateDetectionRuleBody): Promise<DetectionRuleResponse> {
+export function createDetectionConfig(data: CreateDetectionConfigBody): Promise<DetectionConfigResponse> {
   return serviceAxios({
-    url: '/malicious/admin/detection-rules/',
+    url: '/malicious/detection-configs/',
     method: 'post',
     data
   })
 }
 
-export function getDetectionRule(id: number): Promise<DetectionRuleResponse> {
+export function getDetectionConfig(id: number): Promise<DetectionConfigResponse> {
   return serviceAxios({
-    url: `/malicious/admin/detection-rules/${id}/`,
+    url: `/malicious/detection-configs/${id}/`,
     method: 'get'
   })
 }
 
-export function updateDetectionRule(id: number, data: UpdateDetectionRuleBody): Promise<DetectionRuleResponse> {
+export function updateDetectionConfig(id: number, data: UpdateDetectionConfigBody): Promise<DetectionConfigResponse> {
   return serviceAxios({
-    url: `/malicious/admin/detection-rules/${id}/`,
+    url: `/malicious/detection-configs/${id}/`,
     method: 'put',
     data
   })
 }
 
-export function deleteDetectionRule(id: number): Promise<void> {
+export function deleteDetectionConfig(id: number): Promise<void> {
   return serviceAxios({
-    url: `/malicious/admin/detection-rules/${id}/`,
+    url: `/malicious/detection-configs/${id}/`,
     method: 'delete'
   })
 }

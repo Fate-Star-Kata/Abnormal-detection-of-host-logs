@@ -20,7 +20,8 @@
           </div>
           <div class="stat-title text-primary-content/80">今日检测次数</div>
           <div class="stat-value">{{ todayDetections }}</div>
-          <div class="stat-desc text-primary-content/60">比昨日 {{ detectionTrend >= 0 ? '+' : '' }}{{ detectionTrend }}%</div>
+          <div class="stat-desc text-primary-content/60">比昨日 {{ detectionTrend >= 0 ? '+' : '' }}{{ detectionTrend }}%
+          </div>
         </div>
       </div>
 
@@ -37,7 +38,8 @@
           </div>
           <div class="stat-title text-error-content/80">异常登录数</div>
           <div class="stat-value">{{ abnormalLogins }}</div>
-          <div class="stat-desc text-error-content/60">比昨日 {{ maliciousTrend >= 0 ? '+' : '' }}{{ maliciousTrend }}%</div>
+          <div class="stat-desc text-error-content/60">比昨日 {{ maliciousTrend >= 0 ? '+' : '' }}{{ maliciousTrend }}%
+          </div>
         </div>
       </div>
 
@@ -102,7 +104,7 @@
                   </div>
                 </div>
               </div>
-              
+
               <div class="stats shadow">
                 <div class="stat">
                   <div class="stat-title">恶意登录趋势</div>
@@ -114,7 +116,7 @@
                   </div>
                 </div>
               </div>
-              
+
               <div class="stats shadow">
                 <div class="stat">
                   <div class="stat-title">威胁趋势</div>
@@ -143,9 +145,8 @@
             </div>
 
             <div class="space-y-3 max-h-96 overflow-y-auto">
-              <div v-for="detection in recentDetections" :key="detection.id" 
-                class="alert shadow-sm hover:shadow-md transition-shadow" 
-                :class="{
+              <div v-for="detection in recentDetections" :key="detection.id"
+                class="alert shadow-sm hover:shadow-md transition-shadow" :class="{
                   'alert-error': detection.is_malicious,
                   'alert-warning': !detection.is_malicious && detection.risk_level === 'high',
                   'alert-info': !detection.is_malicious && detection.risk_level === 'medium',
@@ -280,7 +281,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { getDashboard, getDetectionRecords } from '@/api/PagesApis'
+import { getDashboard, getDetectionRecords } from '@/api/adminApis'
 import type { DashboardResponse, DetectionRecordsResponse, DetectionRecord } from '@/types/apis/PagesApis_T'
 import { ElMessage } from 'element-plus'
 
@@ -307,9 +308,9 @@ const toggleDetection = () => {
 // 获取仪表板数据
 const fetchDashboardData = async () => {
   const response: DashboardResponse = await getDashboard()
-  
+
   console.log('获取仪表板数据响应:', response) // 添加调试日志
-  
+
   if (response.code === 200 && response.data) {
     todayDetections.value = response.data.today_detections
     abnormalLogins.value = response.data.today_malicious
@@ -333,9 +334,9 @@ const fetchRecentDetections = async () => {
       page: 1,
       page_size: 5
     })
-    
+
     console.log('获取检测记录响应:', response) // 添加调试日志
-    
+
     if (response.code === 200 && response.data) {
       // 由于API返回的记录按创建时间倒序排列，我们直接使用结果
       recentDetections.value = response.data
@@ -361,7 +362,7 @@ const formatTime = (timestamp: string) => {
   const minutes = Math.floor(diff / 60000)
   const hours = Math.floor(diff / 3600000)
   const days = Math.floor(diff / 86400000)
-  
+
   if (minutes < 1) return '刚刚'
   if (minutes < 60) return `${minutes}分钟前`
   if (hours < 24) return `${hours}小时前`
@@ -390,7 +391,7 @@ let updateInterval: number
 onMounted(() => {
   // 初始加载数据
   fetchAllData()
-  
+
   // 每30秒更新一次数据
   updateInterval = setInterval(() => {
     fetchAllData()
