@@ -23,7 +23,6 @@ import type {
   NotificationConfigsResponse,
   CreateNotificationConfigRequest,
   NotificationConfigResponse,
-  UpdateNotificationConfigRequest,
   TestNotificationResponse,
   IpBlacklistParams,
   IpBlacklistResponse,
@@ -173,27 +172,11 @@ export function createNotificationConfig(data: CreateNotificationConfigRequest):
   })
 }
 
-export function getNotificationConfig(id: number): Promise<NotificationConfigResponse> {
-  return serviceAxios({
-    url: `/malicious/notification-configs/${id}/`,
-    method: 'get'
-  })
-}
-
-export function updateNotificationConfig(id: number, data: UpdateNotificationConfigRequest): Promise<NotificationConfigResponse> {
-  return serviceAxios({
-    url: `/malicious/notification-configs/${id}/`,
-    method: 'put',
-    data
-  })
-}
-
-export function deleteNotificationConfig(id: number): Promise<void> {
-  return serviceAxios({
-    url: `/malicious/notification-configs/${id}/`,
-    method: 'delete'
-  })
-}
+// 注意：根据API文档，通知配置模块只有3个接口：
+// 1. 获取通知配置列表 (GET /malicious/notification-configs/)
+// 2. 创建通知配置 (POST /malicious/notification-configs/)
+// 3. 测试通知配置 (POST /malicious/notification-configs/{id}/test_notification/)
+// 因此删除了 getNotificationConfig, updateNotificationConfig, deleteNotificationConfig 这3个多余的函数
 
 export function testNotificationConfig(id: number): Promise<TestNotificationResponse> {
   return serviceAxios({

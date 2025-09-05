@@ -273,12 +273,7 @@ export interface NotificationConfigResponse {
   data: NotificationConfig
 }
 
-export interface UpdateNotificationConfigRequest {
-  name?: string
-  type?: string
-  config?: object
-  is_active?: boolean
-}
+// 注意：根据API文档，通知配置模块只有3个接口，因此删除了UpdateNotificationConfigRequest类型
 
 export interface TestNotificationResponse {
   code: number
