@@ -27,7 +27,7 @@ import type {
  */
 export function getDashboardStats(): Promise<DashboardStatsResponse> {
   return serviceAxios({
-    url: '/dashboard/stats/',
+    url: '/malicious/dashboard/',
     method: 'get',
   })
 }

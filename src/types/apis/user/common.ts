@@ -4,20 +4,13 @@ import { type Response } from "../../factory";
 
 export interface GetDashboardStats {
   today_detections: number;
-  anomaly_logins: number;
-  threat_ips: number;
+  today_malicious: number;
+  today_threat_ips: number;
   system_status: string;
-  uptime: string;
-  recent_alerts: RecentAlert[];
-}
-
-export interface RecentAlert {
-  id: number;
-  type: string;
-  level: "high" | "medium" | "low";
-  message: string;
-  timestamp: string;
-  ip_address: string;
+  uptime_days: number;
+  detection_trend: number;
+  malicious_trend: number;
+  threat_trend: number;
 }
 
 export interface DashboardStatsResponse extends Response<GetDashboardStats> {
