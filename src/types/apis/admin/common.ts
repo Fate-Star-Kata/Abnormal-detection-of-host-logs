@@ -163,6 +163,13 @@ export interface GetDetectionConfigsBody {
 }
 
 export interface DetectionConfig {
+  level(level: any): unknown;
+  status(status: any): unknown;
+  triggerCount: any;
+  createTime: any;
+  updateTime: any;
+  conditions: any;
+  actions: any;
   id: number;
   name: string;
   description: string;
@@ -172,6 +179,8 @@ export interface DetectionConfig {
   priority: number;
   created_at: string;
   updated_at: string;
+  is_active: boolean;
+  sensitivity: "high" | "medium" | "low";
 }
 
 interface RuleConfig {

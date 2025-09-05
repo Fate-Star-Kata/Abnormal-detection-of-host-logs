@@ -3,6 +3,8 @@ import { ref, reactive, onMounted } from 'vue'
 import { Motion } from 'motion-v'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { cloneDeep } from 'lodash-es'
+import { getDetectionConfigs, createDetectionConfig, updateDetectionConfig, deleteDetectionConfig, activateDetectionConfig, deactivateDetectionConfig } from '@/api/adminApis'
+import type { DetectionConfig, GetDetectionConfigsBody, CreateDetectionConfigBody, UpdateDetectionConfigBody } from '@/types/apis/admin/common'
 import {
   Plus,
   Edit,
@@ -19,11 +21,11 @@ import {
 
 // 响应式数据
 const loading = ref(false)
-const ruleList = ref([])
+const ruleList = ref<DetectionConfig[]>([])
 const editDialogVisible = ref(false)
 const addDialogVisible = ref(false)
 const viewDialogVisible = ref(false)
-const currentRule = ref(null)
+const currentRule = ref<DetectionConfig>()
 const activeTab = ref('rules')
 
 // 规则统计数据
@@ -32,14 +34,6 @@ const ruleStats = ref({
   active: 18,
   inactive: 6,
   critical: 8
-})
-
-// 搜索表单
-const searchForm = reactive({
-  keyword: '',
-  status: '',
-  type: '',
-  level: ''
 })
 
 // 分页数据
@@ -102,102 +96,68 @@ const operators = [
   { label: '正则匹配', value: 'regex' }
 ]
 
-// 初始化规则数据
-const initRuleList = () => {
-  ruleList.value = [
-    {
-      id: 1,
-      name: '异常登录检测',
-      description: '检测短时间内多次登录失败的异常行为',
-      type: 'login_anomaly',
-      level: 'high',
-      status: 'active',
-      createTime: '2024-01-10 10:30:00',
-      updateTime: '2024-01-15 14:20:00',
-      triggerCount: 156,
-      conditions: {
-        timeWindow: 300,
-        threshold: 5,
-        field: 'login_attempts',
-        operator: 'gt',
-        value: '5'
-      },
-      actions: {
-        alert: true,
-        email: true,
-        block: false
-      }
-    },
-    {
-      id: 2,
-      name: '暴力破解检测',
-      description: '检测针对SSH服务的暴力破解攻击',
-      type: 'brute_force',
-      level: 'critical',
-      status: 'active',
-      createTime: '2024-01-08 09:15:00',
-      updateTime: '2024-01-14 16:45:00',
-      triggerCount: 89,
-      conditions: {
-        timeWindow: 600,
-        threshold: 10,
-        field: 'ssh_attempts',
-        operator: 'gte',
-        value: '10'
-      },
-      actions: {
-        alert: true,
-        email: true,
-        block: true
-      }
-    },
-    {
-      id: 3,
-      name: '异常访问检测',
-      description: '检测非工作时间的系统访问行为',
-      type: 'abnormal_access',
-      level: 'medium',
-      status: 'active',
-      createTime: '2024-01-05 14:20:00',
-      updateTime: '2024-01-12 11:30:00',
-      triggerCount: 23,
-      conditions: {
-        timeWindow: 3600,
-        threshold: 1,
-        field: 'access_time',
-        operator: 'regex',
-        value: '^(0[0-6]|2[2-3]):[0-5][0-9]'
-      },
-      actions: {
-        alert: true,
-        email: false,
-        block: false
-      }
-    },
-    {
-      id: 4,
-      name: '权限提升检测',
-      description: '检测用户权限异常提升行为',
-      type: 'privilege_escalation',
-      level: 'high',
-      status: 'inactive',
-      createTime: '2024-01-03 16:45:00',
-      updateTime: '2024-01-10 09:20:00',
-      triggerCount: 12,
-      conditions: {
-        timeWindow: 1800,
-        threshold: 3,
-        field: 'sudo_commands',
-        operator: 'gt',
-        value: '3'
-      },
-      actions: {
-        alert: true,
-        email: true,
-        block: false
-      }
+// 从后端获取规则数据
+const fetchRuleList = async () => {
+  try {
+    loading.value = true
+    const params: GetDetectionConfigsBody = {
+      page: pagination.currentPage,
+      page_size: pagination.pageSize,
+
     }
-  ]
+
+    const response = await getDetectionConfigs(params)
+    if (response.code === 200 && response.data) {
+      // API返回的数据结构是 {code, msg, data: [...]}
+      // data 直接就是规则数组
+      const rules = Array.isArray(response.data) ? response.data : []
+      ruleList.value = rules
+      pagination.total = rules.length
+      updateStats()
+    } else {
+      ruleList.value = []
+      pagination.total = 0
+      updateStats()
+      ElMessage.error(response.msg || '获取检测配置失败')
+    }
+  } catch (error) {
+    console.error('获取检测配置失败:', error)
+    ruleList.value = []
+    pagination.total = 0
+    updateStats()
+    ElMessage.error('获取检测配置失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 更新统计数据
+const updateStats = () => {
+  if (!ruleList.value || !Array.isArray(ruleList.value)) {
+    ruleStats.value.total = 0
+    ruleStats.value.active = 0
+    ruleStats.value.inactive = 0
+    ruleStats.value.critical = 0
+    return
+  }
+
+  ruleStats.value.total = ruleList.value.length
+  ruleStats.value.active = ruleList.value.filter(rule => rule.is_active).length
+  ruleStats.value.inactive = ruleList.value.filter(rule => !rule.is_active).length
+  ruleStats.value.critical = ruleList.value.filter(rule => rule.sensitivity === 'high').length
+}
+
+// 格式化日期时间
+const formatDateTime = (dateStr: string) => {
+  if (!dateStr) return '-'
+  const date = new Date(dateStr)
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
 }
 
 // 工具函数
@@ -215,31 +175,28 @@ const getStatusColor = (status: string) => {
 }
 
 // 数据加载
-const loadData = async () => {
-  loading.value = true
-  setTimeout(() => {
-    initRuleList()
-    loading.value = false
-  }, 1000)
+const loadData = () => {
+  fetchRuleList()
 }
 
 // 事件处理函数
-const handleSearch = () => {
-  pagination.currentPage = 1
-  ElMessage.info('搜索功能待实现')
-}
 
-const resetSearch = () => {
-  Object.assign(searchForm, {
-    keyword: '',
-    status: '',
-    type: '',
-    level: ''
-  })
-  handleSearch()
-}
 
 const addRule = () => {
+  currentRule.value = {
+    id: '',
+    name: '',
+    description: '',
+    type: '',
+    enabled: true,
+    is_active: true,
+    sensitivity: 'low',
+    detection_interval: 300,
+    threshold_high: 0,
+    threshold_medium: 0,
+    created_at: '',
+    updated_at: ''
+  } as unknown as DetectionConfig
   Object.assign(ruleForm, {
     name: '',
     description: '',
@@ -262,65 +219,186 @@ const addRule = () => {
   addDialogVisible.value = true
 }
 
-const editRule = (rule: any) => {
+const editRule = (rule: DetectionConfig) => {
   currentRule.value = cloneDeep(rule)
-  Object.assign(ruleForm, currentRule.value)
+  Object.assign(ruleForm, {
+    name: rule.name,
+    description: rule.description,
+    type: rule.type,
+    level: rule.priority === 1 ? 'critical' : rule.priority === 2 ? 'high' : rule.priority === 3 ? 'medium' : 'low',
+    status: rule.enabled ? 'active' : 'inactive',
+    conditions: {
+      timeWindow: rule.config.time_window || 300,
+      threshold: rule.config.threshold || 5,
+      field: rule.config.conditions?.field || '',
+      operator: rule.config.conditions?.operator || 'gt',
+      value: rule.config.conditions?.value || ''
+    },
+    actions: {
+      alert: rule.config.actions?.includes('send_alert') || false,
+      email: rule.config.actions?.includes('send_email') || false,
+      block: rule.config.actions?.includes('block_ip') || false
+    }
+  })
   editDialogVisible.value = true
 }
 
-const viewRule = (rule: any) => {
-  currentRule.value = cloneDeep(rule)
+const viewRule = (rule: DetectionConfig) => {
+  // 转换API数据结构为前端期望的格式
+  currentRule.value = {
+    ...rule,
+    sensitivity: rule.sensitivity || 'low',
+    // @ts-ignore
+    createTime: formatDateTime(rule.created_at),
+    updateTime: formatDateTime(rule.updated_at),
+    conditions: {
+      field: 'source_ip', // API中没有这个字段，设置默认值
+      operator: 'gt', // API中没有这个字段，设置默认值
+      value: '' // API中没有这个字段，设置默认值
+    },
+    actions: {
+      alert: true, // API中没有这个字段，设置默认值
+      email: false, // API中没有这个字段，设置默认值
+      block: false // API中没有这个字段，设置默认值
+    }
+  }
   viewDialogVisible.value = true
 }
 
-const deleteRule = async (rule: any) => {
+const deleteRule = async (rule: DetectionConfig) => {
   try {
     await ElMessageBox.confirm(`确认删除规则 "${rule.name}"？`, '确认删除', {
       type: 'warning'
     })
-    const index = ruleList.value.findIndex(item => item.id === rule.id)
-    if (index > -1) {
-      ruleList.value.splice(index, 1)
-      ruleStats.value.total--
+    // @ts-ignore
+    const response = await deleteDetectionConfig({ id: rule.id })
+    // @ts-ignore
+    if (response.code === 200) {
       ElMessage.success('删除成功')
+      loadData()
+    } else {
+      // @ts-ignore
+      ElMessage.error(response.msg || '删除失败')
     }
-  } catch {
-    // 用户取消
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除规则失败:', error)
+      ElMessage.error('删除失败')
+    }
   }
 }
 
-const toggleRuleStatus = async (rule: any) => {
-  const action = rule.status === 'active' ? '禁用' : '启用'
+const toggleRuleStatus = async (rule: DetectionConfig) => {
+  const action = rule.is_active ? '禁用' : '启用'
   try {
     await ElMessageBox.confirm(`确认${action}规则 "${rule.name}"？`, `确认${action}`, {
       type: 'warning'
     })
-    rule.status = rule.status === 'active' ? 'inactive' : 'active'
-    ElMessage.success(`${action}成功`)
-  } catch {
-    // 用户取消
+
+    let response
+    if (rule.is_active) {
+      // 当前是启用状态，要禁用
+      response = await deactivateDetectionConfig(rule.id)
+    } else {
+      // 当前是禁用状态，要启用
+      response = await activateDetectionConfig(rule.id)
+    }
+
+    if (response.code === 200) {
+      ElMessage.success(`${action}成功`)
+      loadData()
+    } else {
+      ElMessage.error(response.msg || `${action}失败`)
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error(`${action}规则失败:`, error)
+      ElMessage.error(`${action}失败`)
+    }
   }
 }
 
-const saveRule = () => {
-  // 保存规则逻辑
-  ElMessage.success('规则保存成功')
-  addDialogVisible.value = false
-  editDialogVisible.value = false
-  loadData()
+const saveRule = async () => {
+  try {
+    const actions = []
+    if (ruleForm.actions.alert) actions.push('send_alert')
+    if (ruleForm.actions.email) actions.push('send_email')
+    if (ruleForm.actions.block) actions.push('block_ip')
+
+    if (currentRule.value) {
+      // 编辑模式
+      const params: UpdateDetectionConfigBody = {
+        name: ruleForm.name,
+        description: ruleForm.description,
+        enabled: ruleForm.status === 'active',
+        priority: ruleForm.level === 'critical' ? 1 : ruleForm.level === 'high' ? 2 : ruleForm.level === 'medium' ? 3 : 4,
+        config: {
+          threshold: ruleForm.conditions.threshold,
+          time_window: ruleForm.conditions.timeWindow,
+          conditions: {
+            field: ruleForm.conditions.field,
+            operator: ruleForm.conditions.operator,
+            value: ruleForm.conditions.value
+          },
+          actions: actions
+        }
+      }
+      const response = await updateDetectionConfig(currentRule.value.id, params)
+      if (response.code === 200) {
+        ElMessage.success('规则更新成功')
+        editDialogVisible.value = false
+        loadData()
+      } else {
+        ElMessage.error(response.msg || '规则更新失败')
+      }
+    } else {
+      // 新增模式
+      const params: CreateDetectionConfigBody = {
+        name: ruleForm.name,
+        description: ruleForm.description,
+        // @ts-ignore
+        type: ruleForm.type,
+        enabled: ruleForm.status === 'active',
+        priority: ruleForm.level === 'critical' ? 1 : ruleForm.level === 'high' ? 2 : ruleForm.level === 'medium' ? 3 : 4,
+        config: {
+          threshold: ruleForm.conditions.threshold,
+          time_window: ruleForm.conditions.timeWindow,
+          conditions: {
+            field: ruleForm.conditions.field,
+            operator: ruleForm.conditions.operator,
+            value: ruleForm.conditions.value
+          },
+          actions: actions
+        }
+      }
+      const response = await createDetectionConfig(params)
+      if (response.code === 200) {
+        ElMessage.success('规则创建成功')
+        addDialogVisible.value = false
+        loadData()
+      } else {
+        ElMessage.error(response.msg || '规则创建失败')
+      }
+    }
+  } catch (error) {
+    console.error('保存规则失败:', error)
+    ElMessage.error('保存规则失败')
+  }
 }
 
 const testRule = () => {
-  ElMessage.info('规则测试功能待实现')
+  ElMessage.info('测试规则功能待实现')
 }
 
 const handleSizeChange = (size: number) => {
   pagination.pageSize = size
   pagination.currentPage = 1
+  fetchRuleList()
 }
 
 const handleCurrentChange = (page: number) => {
   pagination.currentPage = page
+  fetchRuleList()
 }
 
 const refreshData = () => {
@@ -351,7 +429,9 @@ onMounted(() => {
               <p class="text-2xl font-bold text-gray-900">{{ ruleStats.total }}</p>
             </div>
             <div class="p-3 bg-blue-100 rounded-full">
-              <el-icon class="text-blue-600" size="24"><Setting /></el-icon>
+              <el-icon class="text-blue-600" size="24">
+                <Setting />
+              </el-icon>
             </div>
           </div>
         </div>
@@ -365,7 +445,9 @@ onMounted(() => {
               <p class="text-2xl font-bold text-green-600">{{ ruleStats.active }}</p>
             </div>
             <div class="p-3 bg-green-100 rounded-full">
-              <el-icon class="text-green-600" size="24"><CircleCheck /></el-icon>
+              <el-icon class="text-green-600" size="24">
+                <CircleCheck />
+              </el-icon>
             </div>
           </div>
         </div>
@@ -379,7 +461,9 @@ onMounted(() => {
               <p class="text-2xl font-bold text-red-600">{{ ruleStats.inactive }}</p>
             </div>
             <div class="p-3 bg-red-100 rounded-full">
-              <el-icon class="text-red-600" size="24"><CircleClose /></el-icon>
+              <el-icon class="text-red-600" size="24">
+                <CircleClose />
+              </el-icon>
             </div>
           </div>
         </div>
@@ -393,7 +477,9 @@ onMounted(() => {
               <p class="text-2xl font-bold text-purple-600">{{ ruleStats.critical }}</p>
             </div>
             <div class="p-3 bg-purple-100 rounded-full">
-              <el-icon class="text-purple-600" size="24"><Warning /></el-icon>
+              <el-icon class="text-purple-600" size="24">
+                <Warning />
+              </el-icon>
             </div>
           </div>
         </div>
@@ -406,46 +492,20 @@ onMounted(() => {
       <div class="p-6 border-b border-gray-200">
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div class="flex flex-col sm:flex-row gap-4 flex-1">
-            <el-input
-              v-model="searchForm.keyword"
-              placeholder="搜索规则名称或描述"
-              class="w-full sm:w-64"
-              clearable
-            >
-              <template #prefix>
-                <el-icon><Search /></el-icon>
-              </template>
-            </el-input>
-            
-            <el-select v-model="searchForm.status" placeholder="状态" class="w-full sm:w-32" clearable>
-              <el-option label="活跃" value="active" />
-              <el-option label="禁用" value="inactive" />
-            </el-select>
-            
-            <el-select v-model="searchForm.type" placeholder="类型" class="w-full sm:w-40" clearable>
-              <el-option v-for="type in ruleTypes" :key="type.value" :label="type.label" :value="type.value" />
-            </el-select>
-            
-            <el-select v-model="searchForm.level" placeholder="风险等级" class="w-full sm:w-32" clearable>
-              <el-option v-for="level in riskLevels" :key="level.value" :label="level.label" :value="level.value" />
-            </el-select>
+
           </div>
-          
+
           <div class="flex gap-2">
-            <el-button @click="handleSearch" type="primary">
-              <el-icon><Search /></el-icon>
-              搜索
-            </el-button>
-            <el-button @click="resetSearch">
-              <el-icon><Refresh /></el-icon>
-              重置
-            </el-button>
-            <el-button @click="addRule" type="success">
-              <el-icon><Plus /></el-icon>
+            <!-- <el-button @click="addRule" type="success">
+              <el-icon>
+                <Plus />
+              </el-icon>
               添加规则
-            </el-button>
+            </el-button> -->
             <el-button @click="refreshData">
-              <el-icon><Refresh /></el-icon>
+              <el-icon>
+                <Refresh />
+              </el-icon>
               刷新
             </el-button>
           </div>
@@ -454,49 +514,55 @@ onMounted(() => {
 
       <!-- 规则列表 -->
       <div class="p-6">
-        <el-table :data="ruleList" v-loading="loading" stripe>
-          <el-table-column prop="name" label="规则名称" width="200" />
-          <el-table-column prop="description" label="描述" min-width="250" show-overflow-tooltip />
-          <el-table-column prop="type" label="类型" width="120">
+        <el-table :data="ruleList" v-loading="loading" stripe style="width: 100%">
+          <el-table-column prop="name" label="配置名称" width="200" />
+          <el-table-column prop="detection_interval" label="检测间隔">
             <template #default="{ row }">
-              <el-tag size="small">
-                {{ getRuleTypeName(row.type) }}
+              {{ row.detection_interval }}秒
+            </template>
+          </el-table-column>
+          <el-table-column prop="sensitivity" label="敏感度">
+            <template #default="{ row }">
+              <el-tag
+                :type="row.sensitivity === 'high' ? 'danger' : row.sensitivity === 'medium' ? 'warning' : 'success'"
+                size="small">
+                {{ row.sensitivity === 'high' ? '高' : row.sensitivity === 'medium' ? '中' : '低' }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="level" label="风险等级" width="100">
+          <el-table-column label="阈值设置">
             <template #default="{ row }">
-              <el-tag :type="getRiskLevelInfo(row.level).color" size="small">
-                {{ getRiskLevelInfo(row.level).label }}
+              <div class="text-xs">
+                <div>高: {{ row.threshold_high }}</div>
+                <div>中: {{ row.threshold_medium }}</div>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="is_active" label="状态">
+            <template #default="{ row }">
+              <el-tag :type="row.is_active ? 'success' : 'danger'" size="small">
+                {{ row.is_active ? '启用' : '禁用' }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="status" label="状态" width="80">
+          <el-table-column prop="updated_at" label="更新时间">
             <template #default="{ row }">
-              <el-tag :type="getStatusColor(row.status)" size="small">
-                {{ row.status === 'active' ? '活跃' : '禁用' }}
-              </el-tag>
+              {{ formatDateTime(row.updated_at) }}
             </template>
           </el-table-column>
-          <el-table-column prop="triggerCount" label="触发次数" width="100" />
-          <el-table-column prop="updateTime" label="更新时间" width="160" />
           <el-table-column label="操作" width="280" fixed="right">
             <template #default="{ row }">
               <el-button size="small" @click="viewRule(row)">
-                <el-icon><View /></el-icon>
+                <el-icon>
+                  <View />
+                </el-icon>
                 查看
               </el-button>
-              <el-button size="small" @click="editRule(row)">
-                <el-icon><Edit /></el-icon>
-                编辑
-              </el-button>
-              <el-button size="small" :type="row.status === 'active' ? 'warning' : 'success'" @click="toggleRuleStatus(row)">
-                <el-icon><Switch /></el-icon>
-                {{ row.status === 'active' ? '禁用' : '启用' }}
-              </el-button>
-              <el-button size="small" type="danger" @click="deleteRule(row)">
-                <el-icon><Delete /></el-icon>
-                删除
+              <el-button size="small" :type="row.is_active ? 'warning' : 'success'" @click="toggleRuleStatus(row)">
+                <el-icon>
+                  <Switch />
+                </el-icon>
+                {{ row.is_active ? '禁用' : '启用' }}
               </el-button>
             </template>
           </el-table-column>
@@ -504,15 +570,9 @@ onMounted(() => {
 
         <!-- 分页 -->
         <div class="mt-6 flex justify-center">
-          <el-pagination
-            v-model:current-page="pagination.currentPage"
-            v-model:page-size="pagination.pageSize"
-            :page-sizes="[10, 20, 50, 100]"
-            :total="pagination.total"
-            layout="total, sizes, prev, pager, next, jumper"
-            @size-change="handleSizeChange"
-            @current-change="handleCurrentChange"
-          />
+          <el-pagination v-model:current-page="pagination.currentPage" v-model:page-size="pagination.pageSize"
+            :page-sizes="[10, 20, 50, 100]" :total="pagination.total" layout="total, sizes, prev, pager, next, jumper"
+            @size-change="handleSizeChange" @current-change="handleCurrentChange" />
         </div>
       </div>
     </div>
@@ -534,11 +594,11 @@ onMounted(() => {
             </el-form-item>
           </el-col>
         </el-row>
-        
+
         <el-form-item label="规则描述">
           <el-input v-model="ruleForm.description" type="textarea" :rows="3" placeholder="请输入规则描述" />
         </el-form-item>
-        
+
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="风险等级">
@@ -556,9 +616,9 @@ onMounted(() => {
             </el-form-item>
           </el-col>
         </el-row>
-        
+
         <el-divider content-position="left">检测条件</el-divider>
-        
+
         <el-row :gutter="20">
           <el-col :span="8">
             <el-form-item label="时间窗口(秒)">
@@ -576,7 +636,7 @@ onMounted(() => {
             </el-form-item>
           </el-col>
         </el-row>
-        
+
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="操作符">
@@ -591,9 +651,9 @@ onMounted(() => {
             </el-form-item>
           </el-col>
         </el-row>
-        
+
         <el-divider content-position="left">响应动作</el-divider>
-        
+
         <el-form-item label="触发动作">
           <el-checkbox-group v-model="ruleForm.actions">
             <el-checkbox :true-label="true" :false-label="false" v-model="ruleForm.actions.alert">生成告警</el-checkbox>
@@ -602,7 +662,7 @@ onMounted(() => {
           </el-checkbox-group>
         </el-form-item>
       </el-form>
-      
+
       <template #footer>
         <el-button @click="addDialogVisible = false">取消</el-button>
         <el-button @click="testRule">测试规则</el-button>
@@ -627,11 +687,11 @@ onMounted(() => {
             </el-form-item>
           </el-col>
         </el-row>
-        
+
         <el-form-item label="规则描述">
           <el-input v-model="ruleForm.description" type="textarea" :rows="3" placeholder="请输入规则描述" />
         </el-form-item>
-        
+
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="风险等级">
@@ -649,9 +709,9 @@ onMounted(() => {
             </el-form-item>
           </el-col>
         </el-row>
-        
+
         <el-divider content-position="left">检测条件</el-divider>
-        
+
         <el-row :gutter="20">
           <el-col :span="8">
             <el-form-item label="时间窗口(秒)">
@@ -669,7 +729,7 @@ onMounted(() => {
             </el-form-item>
           </el-col>
         </el-row>
-        
+
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="操作符">
@@ -684,9 +744,9 @@ onMounted(() => {
             </el-form-item>
           </el-col>
         </el-row>
-        
+
         <el-divider content-position="left">响应动作</el-divider>
-        
+
         <el-form-item label="触发动作">
           <el-checkbox-group v-model="ruleForm.actions">
             <el-checkbox :true-label="true" :false-label="false" v-model="ruleForm.actions.alert">生成告警</el-checkbox>
@@ -695,7 +755,7 @@ onMounted(() => {
           </el-checkbox-group>
         </el-form-item>
       </el-form>
-      
+
       <template #footer>
         <el-button @click="editDialogVisible = false">取消</el-button>
         <el-button @click="testRule">测试规则</el-button>
@@ -710,12 +770,16 @@ onMounted(() => {
           <el-descriptions-item label="规则名称">{{ currentRule.name }}</el-descriptions-item>
           <el-descriptions-item label="规则类型">{{ getRuleTypeName(currentRule.type) }}</el-descriptions-item>
           <el-descriptions-item label="风险等级">
+            <!-- @vue-ignore -->
             <el-tag :type="getRiskLevelInfo(currentRule.level).color" size="small">
+              <!-- @vue-ignore -->
               {{ getRiskLevelInfo(currentRule.level).label }}
             </el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="状态">
+            <!-- @vue-ignore -->
             <el-tag :type="getStatusColor(currentRule.status)" size="small">
+              <!-- @vue-ignore -->
               {{ currentRule.status === 'active' ? '活跃' : '禁用' }}
             </el-tag>
           </el-descriptions-item>
@@ -724,16 +788,20 @@ onMounted(() => {
           <el-descriptions-item label="更新时间" :span="2">{{ currentRule.updateTime }}</el-descriptions-item>
           <el-descriptions-item label="规则描述" :span="2">{{ currentRule.description }}</el-descriptions-item>
         </el-descriptions>
-        
+
         <el-divider content-position="left">检测条件</el-divider>
         <el-descriptions :column="2" border>
           <el-descriptions-item label="时间窗口">{{ currentRule.conditions.timeWindow }}秒</el-descriptions-item>
           <el-descriptions-item label="阈值">{{ currentRule.conditions.threshold }}</el-descriptions-item>
           <el-descriptions-item label="检测字段">{{ currentRule.conditions.field }}</el-descriptions-item>
-          <el-descriptions-item label="操作符">{{ operators.find(op => op.value === currentRule.conditions.operator)?.label }}</el-descriptions-item>
+          <!-- @vue-ignore -->
+          <el-descriptions-item label="操作符">
+            <!-- @vue-ignore -->
+            {{operators.find(op => op.value === currentRule.conditions.operator)?.label
+            }}</el-descriptions-item>
           <el-descriptions-item label="比较值" :span="2">{{ currentRule.conditions.value }}</el-descriptions-item>
         </el-descriptions>
-        
+
         <el-divider content-position="left">响应动作</el-divider>
         <div class="flex gap-4">
           <el-tag v-if="currentRule.actions.alert" type="success">生成告警</el-tag>
@@ -741,9 +809,10 @@ onMounted(() => {
           <el-tag v-if="currentRule.actions.block" type="danger">阻断访问</el-tag>
         </div>
       </div>
-      
+
       <template #footer>
         <el-button @click="viewDialogVisible = false">关闭</el-button>
+        <!-- @vue-ignore -->
         <el-button type="primary" @click="editRule(currentRule)">编辑规则</el-button>
       </template>
     </el-dialog>

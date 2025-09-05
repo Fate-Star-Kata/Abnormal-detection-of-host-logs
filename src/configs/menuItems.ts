@@ -213,6 +213,7 @@ export const adminMenuItems: AdminHeader[] = [
     id: "13",
     title: "系统配置",
     icon: "Tools",
+    hide: true,
     path: "/admin/systemConfig",
   },
 ];

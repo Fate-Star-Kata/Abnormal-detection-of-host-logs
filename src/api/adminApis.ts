@@ -257,7 +257,23 @@ export function updateDetectionConfig(id: number, data: UpdateDetectionConfigBod
 export function deleteDetectionConfig(id: number): Promise<void> {
   return serviceAxios({
     url: `/malicious/detection-configs/${id}/`,
-    method: 'delete'
+    method: 'delete',
+  })
+}
+
+// 激活检测配置
+export function activateDetectionConfig(id: number): Promise<{ code: number, msg: string }> {
+  return serviceAxios({
+    url: `/malicious/detection-configs/${id}/activate/`,
+    method: 'post',
+  })
+}
+
+// 禁用检测配置
+export function deactivateDetectionConfig(id: number): Promise<{ code: number, msg: string }> {
+  return serviceAxios({
+    url: `/malicious/detection-configs/${id}/deactivate/`,
+    method: 'post',
   })
 }
 
