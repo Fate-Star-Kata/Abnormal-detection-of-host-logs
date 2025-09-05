@@ -281,7 +281,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { getDashboard, getDetectionRecords } from '@/api/adminApis'
+import { getDashboard, getDetectionRecords } from '@/api/PagesApis'
 import type { DashboardResponse, DetectionRecordsResponse, DetectionRecord } from '@/types/apis/PagesApis_T'
 import { ElMessage } from 'element-plus'
 
