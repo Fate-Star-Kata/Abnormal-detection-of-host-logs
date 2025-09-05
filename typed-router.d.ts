@@ -22,7 +22,6 @@ declare module 'vue-router/auto-routes' {
     '/404/': RouteRecordInfo<'/404/', '/404', Record<never, never>, Record<never, never>>,
     '/admin/': RouteRecordInfo<'/admin/', '/admin', Record<never, never>, Record<never, never>>,
     '/admin/ai/': RouteRecordInfo<'/admin/ai/', '/admin/ai', Record<never, never>, Record<never, never>>,
-    '/admin/backup-recovery/': RouteRecordInfo<'/admin/backup-recovery/', '/admin/backup-recovery', Record<never, never>, Record<never, never>>,
     '/admin/Content/': RouteRecordInfo<'/admin/Content/', '/admin/Content', Record<never, never>, Record<never, never>>,
     '/admin/dashboard/': RouteRecordInfo<'/admin/dashboard/', '/admin/dashboard', Record<never, never>, Record<never, never>>,
     '/admin/detection-records/': RouteRecordInfo<'/admin/detection-records/', '/admin/detection-records', Record<never, never>, Record<never, never>>,
@@ -81,10 +80,6 @@ declare module 'vue-router/auto-routes' {
     }
     'src/pages/admin/ai/index.vue': {
       routes: '/admin/ai/'
-      views: never
-    }
-    'src/pages/admin/backup-recovery/index.vue': {
-      routes: '/admin/backup-recovery/'
       views: never
     }
     'src/pages/admin/Content/index.vue': {

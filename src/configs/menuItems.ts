@@ -149,12 +149,6 @@ export const adminMenuItems: AdminHeader[] = [
     path: "/admin/knowledge",
   },
   {
-    id: "8",
-    title: "数据备份",
-    icon: "FolderOpened",
-    path: "/admin/backup-recovery",
-  },
-  {
     id: "9",
     title: "订单管理",
     icon: "ShoppingCart",
