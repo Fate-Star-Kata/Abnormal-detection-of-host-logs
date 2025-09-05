@@ -296,6 +296,17 @@ export interface CreateNotificationConfigResponse extends Response<GetNotificati
   data: GetNotificationConfig;
 }
 
+// 测试通知配置请求 - 已移除，改为通过ID测试
+// export interface TestNotificationBody {
+//   type: 'email' | 'sms' | 'webhook'
+//   config: {
+//     email?: string
+//     phone?: string
+//     webhook_url?: string
+//   }
+//   message: string
+// }
+
 export interface TestNotificationBody {
   config_id: number;
   test_message?: string;

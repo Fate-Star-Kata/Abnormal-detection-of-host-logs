@@ -98,7 +98,7 @@ export function postModelPrediction(data: PostModelPredictionBody): Promise<Mode
  */
 export function getDetectionRecords(params: GetDetectionRecordsBody): Promise<DetectionRecordsResponse> {
   return serviceAxios({
-    url: '/records/detection-records/',
+    url: '/malicious/detectionRecords/',
     method: 'get',
     params,
   })
@@ -109,7 +109,7 @@ export function getDetectionRecords(params: GetDetectionRecordsBody): Promise<De
  */
 export function getDetectionRecord(id: number): Promise<UpdateDetectionRecordResponse> {
   return serviceAxios({
-    url: `/records/detection-records/${id}/`,
+    url: `/malicious/detectionRecords/${id}/`,
     method: 'get',
   })
 }
@@ -119,7 +119,7 @@ export function getDetectionRecord(id: number): Promise<UpdateDetectionRecordRes
  */
 export function updateDetectionRecord(id: number, data: UpdateDetectionRecordBody): Promise<UpdateDetectionRecordResponse> {
   return serviceAxios({
-    url: `/records/detection-records/${id}/`,
+    url: `/malicious/detectionRecords/${id}/`,
     method: 'put',
     data,
   })
@@ -130,7 +130,7 @@ export function updateDetectionRecord(id: number, data: UpdateDetectionRecordBod
  */
 export function updateDetectionRecordStatus(id: number, data: UpdateDetectionRecordBody): Promise<UpdateDetectionRecordResponse> {
   return serviceAxios({
-    url: `/records/detection-records/${id}/status/`,
+    url: `/malicious/detectionRecords/${id}/update_status/`,
     method: 'post',
     data,
   })
@@ -143,7 +143,7 @@ export function updateDetectionRecordStatus(id: number, data: UpdateDetectionRec
  */
 export function getNotificationConfigs(): Promise<NotificationConfigResponse> {
   return serviceAxios({
-    url: '/config/notifications/',
+    url: '/malicious/notification-configs/',
     method: 'get',
   })
 }
@@ -153,7 +153,7 @@ export function getNotificationConfigs(): Promise<NotificationConfigResponse> {
  */
 export function createNotificationConfig(data: CreateNotificationConfigBody): Promise<CreateNotificationConfigResponse> {
   return serviceAxios({
-    url: '/config/notifications/',
+    url: '/malicious/notification-configs/',
     method: 'post',
     data,
   })
@@ -162,10 +162,9 @@ export function createNotificationConfig(data: CreateNotificationConfigBody): Pr
 /**
  * 测试通知配置
  */
-export function testNotificationConfig(data: TestNotificationBody): Promise<TestNotificationResponse> {
+export function testNotificationConfig(id: number): Promise<TestNotificationResponse> {
   return serviceAxios({
-    url: '/config/notifications/test/',
+    url: `/malicious/notification-configs/${id}/test_notification/`,
     method: 'post',
-    data,
   })
 }

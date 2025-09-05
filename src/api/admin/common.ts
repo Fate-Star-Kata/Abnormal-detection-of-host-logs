@@ -62,7 +62,7 @@ export function getAdminDashboard(): Promise<AdminDashboardResponse> {
  */
 export function getDetectionRecords(params: GetDetectionRecordsBody): Promise<DetectionRecordsResponse> {
   return serviceAxios({
-    url: '/admin/detection-records/',
+    url: '/malicious/detectionRecords/',
     method: 'get',
     params,
   })
@@ -73,7 +73,7 @@ export function getDetectionRecords(params: GetDetectionRecordsBody): Promise<De
  */
 export function createDetectionRecord(data: CreateDetectionRecordBody): Promise<DetectionRecordResponse> {
   return serviceAxios({
-    url: '/admin/detection-records/',
+    url: '/malicious/detectionRecords/',
     method: 'post',
     data,
   })
@@ -84,7 +84,7 @@ export function createDetectionRecord(data: CreateDetectionRecordBody): Promise<
  */
 export function getDetectionRecord(id: number): Promise<DetectionRecordResponse> {
   return serviceAxios({
-    url: `/admin/detection-records/${id}/`,
+    url: `/malicious/detectionRecords/${id}/`,
     method: 'get',
   })
 }
@@ -94,7 +94,7 @@ export function getDetectionRecord(id: number): Promise<DetectionRecordResponse>
  */
 export function updateDetectionRecord(id: number, data: UpdateDetectionRecordBody): Promise<DetectionRecordResponse> {
   return serviceAxios({
-    url: `/admin/detection-records/${id}/`,
+    url: `/malicious/detectionRecords/${id}/`,
     method: 'put',
     data,
   })
@@ -105,7 +105,7 @@ export function updateDetectionRecord(id: number, data: UpdateDetectionRecordBod
  */
 export function deleteDetectionRecord(id: number): Promise<{ code: number; msg: string }> {
   return serviceAxios({
-    url: `/admin/detection-records/${id}/`,
+    url: `/malicious/detectionRecords/${id}/`,
     method: 'delete',
   })
 }
@@ -113,12 +113,15 @@ export function deleteDetectionRecord(id: number): Promise<{ code: number; msg: 
 /**
  * 更新检测记录状态
  */
-export function updateDetectionRecordStatus(id: number, data: UpdateDetectionRecordBody): Promise<DetectionRecordResponse> {
+export function updateDetectionRecordStatus(
+  id: number,
+  data: UpdateDetectionRecordBody
+): Promise<DetectionRecordResponse> {
   return serviceAxios({
-    url: `/admin/detection-records/${id}/status/`,
-    method: 'post',
+    url: `/malicious/detectionRecords/${id}/update_status/`,
+    method: "patch",
     data,
-  })
+  });
 }
 
 // ===== 用户权限管理接口 =====
@@ -183,7 +186,7 @@ export function deleteUser(id: number): Promise<{ code: number; msg: string }> {
  */
 export function getDetectionRules(params: GetDetectionRulesBody): Promise<DetectionRulesResponse> {
   return serviceAxios({
-    url: '/admin/detection-rules/',
+    url: '/malicious/detection-rules/',
     method: 'get',
     params,
   })
@@ -194,7 +197,7 @@ export function getDetectionRules(params: GetDetectionRulesBody): Promise<Detect
  */
 export function createDetectionRule(data: CreateDetectionRuleBody): Promise<DetectionRuleResponse> {
   return serviceAxios({
-    url: '/admin/detection-rules/',
+    url: '/malicious/detection-rules/',
     method: 'post',
     data,
   })
@@ -205,7 +208,7 @@ export function createDetectionRule(data: CreateDetectionRuleBody): Promise<Dete
  */
 export function getDetectionRule(id: number): Promise<DetectionRuleResponse> {
   return serviceAxios({
-    url: `/admin/detection-rules/${id}/`,
+    url: `/malicious/detection-rules/${id}/`,
     method: 'get',
   })
 }
@@ -215,7 +218,7 @@ export function getDetectionRule(id: number): Promise<DetectionRuleResponse> {
  */
 export function updateDetectionRule(id: number, data: UpdateDetectionRuleBody): Promise<DetectionRuleResponse> {
   return serviceAxios({
-    url: `/admin/detection-rules/${id}/`,
+    url: `/malicious/detection-rules/${id}/`,
     method: 'put',
     data,
   })
@@ -226,7 +229,7 @@ export function updateDetectionRule(id: number, data: UpdateDetectionRuleBody): 
  */
 export function deleteDetectionRule(id: number): Promise<{ code: number; msg: string }> {
   return serviceAxios({
-    url: `/admin/detection-rules/${id}/`,
+    url: `/malicious/detection-rules/${id}/`,
     method: 'delete',
   })
 }
@@ -236,7 +239,7 @@ export function deleteDetectionRule(id: number): Promise<{ code: number; msg: st
  */
 export function activateDetectionRule(id: number): Promise<DetectionRuleResponse> {
   return serviceAxios({
-    url: `/admin/detection-rules/${id}/activate/`,
+    url: `/malicious/detection-rules/${id}/activate/`,
     method: 'post',
   })
 }
@@ -248,7 +251,7 @@ export function activateDetectionRule(id: number): Promise<DetectionRuleResponse
  */
 export function getNotificationConfigs(params: GetNotificationConfigsBody): Promise<NotificationConfigsResponse> {
   return serviceAxios({
-    url: '/admin/notification-configs/',
+    url: '/malicious/notification-configs/',
     method: 'get',
     params,
   })
@@ -259,7 +262,7 @@ export function getNotificationConfigs(params: GetNotificationConfigsBody): Prom
  */
 export function createNotificationConfig(data: CreateNotificationConfigBody): Promise<NotificationConfigResponse> {
   return serviceAxios({
-    url: '/admin/notification-configs/',
+    url: '/malicious/notification-configs/',
     method: 'post',
     data,
   })
@@ -270,7 +273,7 @@ export function createNotificationConfig(data: CreateNotificationConfigBody): Pr
  */
 export function getNotificationConfig(id: number): Promise<NotificationConfigResponse> {
   return serviceAxios({
-    url: `/admin/notification-configs/${id}/`,
+    url: `/malicious/notification-configs/${id}/`,
     method: 'get',
   })
 }
@@ -280,7 +283,7 @@ export function getNotificationConfig(id: number): Promise<NotificationConfigRes
  */
 export function updateNotificationConfig(id: number, data: UpdateNotificationConfigBody): Promise<NotificationConfigResponse> {
   return serviceAxios({
-    url: `/admin/notification-configs/${id}/`,
+    url: `/malicious/notification-configs/${id}/`,
     method: 'put',
     data,
   })
@@ -291,7 +294,7 @@ export function updateNotificationConfig(id: number, data: UpdateNotificationCon
  */
 export function deleteNotificationConfig(id: number): Promise<{ code: number; msg: string }> {
   return serviceAxios({
-    url: `/admin/notification-configs/${id}/`,
+    url: `/malicious/notification-configs/${id}/`,
     method: 'delete',
   })
 }
@@ -299,11 +302,10 @@ export function deleteNotificationConfig(id: number): Promise<{ code: number; ms
 /**
  * 测试通知配置
  */
-export function testNotificationConfig(data: TestNotificationBody): Promise<TestNotificationResponse> {
+export function testNotificationConfig(id: number): Promise<TestNotificationResponse> {
   return serviceAxios({
-    url: '/admin/notification-configs/test/',
+    url: `/malicious/notification-configs/${id}/test_notification/`,
     method: 'post',
-    data,
   })
 }
 
@@ -314,7 +316,7 @@ export function testNotificationConfig(data: TestNotificationBody): Promise<Test
  */
 export function getBlacklist(params: GetBlacklistBody): Promise<BlacklistResponse> {
   return serviceAxios({
-    url: '/admin/ip-blacklist/',
+    url: '/malicious/ip-blacklist/',
     method: 'get',
     params,
   })
@@ -325,7 +327,7 @@ export function getBlacklist(params: GetBlacklistBody): Promise<BlacklistRespons
  */
 export function addToBlacklist(data: AddBlacklistBody): Promise<BlacklistEntryResponse> {
   return serviceAxios({
-    url: '/admin/ip-blacklist/',
+    url: '/malicious/ip-blacklist/',
     method: 'post',
     data,
   })
@@ -336,7 +338,7 @@ export function addToBlacklist(data: AddBlacklistBody): Promise<BlacklistEntryRe
  */
 export function batchAddToBlacklist(data: BatchAddBlacklistBody): Promise<{ code: number; msg: string; data: { success_count: number; failed_count: number } }> {
   return serviceAxios({
-    url: '/admin/ip-blacklist/batch/',
+    url: '/malicious/ip-blacklist/batch_add/',
     method: 'post',
     data,
   })
@@ -347,7 +349,7 @@ export function batchAddToBlacklist(data: BatchAddBlacklistBody): Promise<{ code
  */
 export function removeFromBlacklist(id: number): Promise<{ code: number; msg: string }> {
   return serviceAxios({
-    url: `/admin/ip-blacklist/${id}/`,
+    url: `/malicious/ip-blacklist/${id}/`,
     method: 'delete',
   })
 }
@@ -359,7 +361,7 @@ export function removeFromBlacklist(id: number): Promise<{ code: number; msg: st
  */
 export function getSystemStats(params: GetSystemStatsBody): Promise<SystemStatsResponse> {
   return serviceAxios({
-    url: '/admin/system-stats/',
+    url: '/malicious/system-stats/',
     method: 'get',
     params,
   })
@@ -370,7 +372,7 @@ export function getSystemStats(params: GetSystemStatsBody): Promise<SystemStatsR
  */
 export function generateDailyStats(): Promise<GenerateDailyStatsResponse> {
   return serviceAxios({
-    url: '/admin/system-stats/generate-daily/',
+    url: '/malicious/system-stats/generate_daily/',
     method: 'post',
   })
 }
