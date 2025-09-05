@@ -16,21 +16,25 @@ export interface DashboardResponse {
 
 // 实时检测相关类型
 export interface RealtimeDetectionResponse {
-  status: string
-  current_config: {
-    id: number
-    name: string
-    description: string
-    sensitivity: number
-    high_risk_threshold: number
-    medium_risk_threshold: number
-    detection_interval: number
-    is_active: boolean
-    created_at: string
-  } | null
-  recent_detections: DetectionRecord[]
-  active_threats: number
-  detection_rate: number
+  code: number
+  msg: string
+  data: {
+    status: string
+    current_config: {
+      id: number
+      name: string
+      detection_interval: number
+      sensitivity: string
+      threshold_high: number
+      threshold_medium: number
+      is_active: boolean
+      created_at: string
+      updated_at: string
+    } | null
+    recent_detections: DetectionRecord[]
+    active_threats: number
+    detection_rate: number
+  }
 }
 
 export interface DetectionRecord {
@@ -50,6 +54,11 @@ export interface DetectionRecord {
   notes?: string
   created_at: string
   updated_at?: string
+  detection_features?: {
+    method: string
+    confidence: number
+    [key: string]: any
+  }
 }
 
 export interface SingleDetectionRequest {
@@ -191,22 +200,16 @@ export interface DetectionConfigsParams {
 export interface DetectionConfigsResponse {
   code: number
   msg: string
-  data: {
-    count: number
-    next: string | null
-    previous: string | null
-    results: DetectionConfig[]
-  }
+  data: DetectionConfig[]
 }
 
 export interface DetectionConfig {
   id: number
   name: string
-  description: string
-  sensitivity: number
-  high_risk_threshold: number
-  medium_risk_threshold: number
   detection_interval: number
+  sensitivity: string
+  threshold_high: number
+  threshold_medium: number
   is_active: boolean
   created_at: string
   updated_at?: string
@@ -215,13 +218,17 @@ export interface DetectionConfig {
 export interface CreateDetectionConfigRequest {
   name: string
   description?: string
-  sensitivity: number
+  detection_interval: number
+  sensitivity: string
   high_risk_threshold: number
   medium_risk_threshold: number
-  detection_interval: number
 }
 
-export interface DetectionConfigResponse {
+// 创建检测配置的响应直接返回DetectionConfig对象
+export interface DetectionConfigResponse extends DetectionConfig {}
+
+// 激活检测配置的响应使用标准格式
+export interface ActivateDetectionConfigResponse {
   code: number
   msg: string
   data: DetectionConfig
