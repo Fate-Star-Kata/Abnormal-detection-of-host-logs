@@ -19,6 +19,7 @@ import type {
   DetectionConfigsResponse,
   CreateDetectionConfigRequest,
   DetectionConfigResponse,
+  ActivateDetectionConfigResponse,
   NotificationConfigsParams,
   NotificationConfigsResponse,
   CreateNotificationConfigRequest,
@@ -148,7 +149,7 @@ export function createDetectionConfig(data: CreateDetectionConfigRequest): Promi
   })
 }
 
-export function activateDetectionConfig(id: number): Promise<DetectionConfigResponse> {
+export function activateDetectionConfig(id: number): Promise<ActivateDetectionConfigResponse> {
   return serviceAxios({
     url: `/malicious/detection-configs/${id}/activate/`,
     method: 'post'

@@ -11,7 +11,7 @@
       <div class="xl:col-span-1 space-y-6">
         <!-- 检测状态卡片 -->
         <div class="card bg-base-100 shadow-xl">
-          <div class="card-body">
+          <div class="card-body ">
             <h2 class="card-title text-xl mb-4">检测控制</h2>
 
             <!-- 状态指示器 -->
@@ -31,6 +31,13 @@
                       {{ statusText }}
                     </div>
                     <div class="text-sm opacity-70">{{ statusDescription }}</div>
+                    <div v-if="realtimeDetectionData" class="text-xs opacity-70 mt-1">
+                      {{ realtimeDetectionData.detection_rate }} 次/分钟
+                    </div>
+                    <div v-if="realtimeDetectionData && realtimeDetectionData.active_threats > 0" 
+                      class="text-xs mt-1" :class="realtimeDetectionData.active_threats > 0 ? 'text-error' : 'text-success'">
+                      {{ realtimeDetectionData.active_threats }} 个活跃威胁
+                    </div>
                   </div>
                 </div>
                 <!-- 运行中的动画效果 -->
@@ -87,6 +94,39 @@
         <div class="card bg-base-100 shadow-xl">
           <div class="card-body">
             <h2 class="card-title text-xl mb-4">检测配置</h2>
+
+            <!-- 当前配置信息 -->
+            <div v-if="realtimeDetectionData && realtimeDetectionData.current_config" class="alert alert-info mb-4">
+              <div>
+                <h3 class="font-bold">当前活动配置</h3>
+                <div class="text-sm">
+                  <p>{{ realtimeDetectionData.current_config.name }}</p>
+                  <p>检测间隔: {{ realtimeDetectionData.current_config.detection_interval }}秒</p>
+                  <p>敏感度: {{ realtimeDetectionData.current_config.sensitivity }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- 可用配置列表 -->
+            <div v-if="detectionConfigs.length > 0" class="mb-4">
+              <h3 class="font-medium text-base mb-2">可用配置</h3>
+              <div class="space-y-2 max-h-32 overflow-y-auto">
+                <div v-for="config in detectionConfigs" :key="config.id" 
+                     class="flex items-center justify-between p-2 bg-base-200 rounded-lg">
+                  <div class="flex-1">
+                    <p class="font-medium text-sm">{{ config.name }}</p>
+                    <p class="text-xs opacity-70">
+                      间隔: {{ config.detection_interval }}s | 敏感度: {{ config.sensitivity }}
+                    </p>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <div v-if="config.is_active" class="badge badge-success badge-sm">活动</div>
+                    <button v-else @click="activateConfig(config.id)" 
+                            class="btn btn-xs btn-primary">激活</button>
+                  </div>
+                </div>
+              </div>
+            </div>
 
             <!-- 检测间隔 -->
             <div class="form-control mb-4">
@@ -181,7 +221,7 @@
       <!-- 实时检测结果 -->
       <div class="xl:col-span-2">
         <div class="card bg-base-100 shadow-xl h-full">
-          <div class="card-body">
+          <div class="card-body ">
             <div class="flex justify-between items-center mb-6">
               <h2 class="card-title text-xl">实时检测结果</h2>
               <div class="flex items-center gap-4">
@@ -199,7 +239,7 @@
             </div>
 
             <!-- 检测结果列表 -->
-            <div class="space-y-4 max-h-[600px] overflow-y-auto">
+            <div class="space-y-4 max-h-[1050px] overflow-y-auto">
               <div v-if="detectionResults.length === 0" class="text-center py-12">
                 <div class="text-6xl opacity-20 mb-4">🔍</div>
                 <p class="text-base-content/60">暂无检测结果</p>
@@ -278,6 +318,23 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { 
+  getRealtimeDetection, 
+  executeSingleDetection,
+  getDetectionConfigs,
+  createDetectionConfig,
+  activateDetectionConfig
+} from '@/api/PagesApis'
+import type { 
+  RealtimeDetectionResponse, 
+  DetectionConfig,
+  DetectionConfigsResponse,
+  CreateDetectionConfigRequest,
+  DetectionConfigResponse,
+  ActivateDetectionConfigResponse,
+  SingleDetectionRequest
+} from '@/types/apis/PagesApis_T'
+import { ElMessage } from 'element-plus'
 
 // 检测状态
 const detectionStatus = ref<'running' | 'stopped' | 'paused'>('stopped')
@@ -309,6 +366,12 @@ const detectionResults = ref<Array<{
   suggestion?: string
 }>>([])
 
+// 实时检测数据
+const realtimeDetectionData = ref<any>(null)
+
+// 检测配置列表
+const detectionConfigs = ref<DetectionConfig[]>([])
+
 // 计算属性
 const statusText = computed(() => {
   switch (detectionStatus.value) {
@@ -328,105 +391,197 @@ const statusDescription = computed(() => {
   }
 })
 
-// 控制方法
-const startDetection = () => {
-  detectionStatus.value = 'running'
-  detectionProgress.value = 0
-  // 模拟检测进度
-  const progressInterval = setInterval(() => {
-    if (detectionProgress.value < 100 && detectionStatus.value === 'running') {
-      detectionProgress.value += Math.random() * 10
-    } else {
-      clearInterval(progressInterval)
-      if (detectionStatus.value === 'running') {
-        detectionProgress.value = 100
+// 获取实时检测状态
+const fetchRealtimeDetection = async () => {
+  try {
+    const response: RealtimeDetectionResponse = await getRealtimeDetection()
+    
+    if (response.code === 200) {
+      realtimeDetectionData.value = response.data
+      detectionStatus.value = response.data.status === 'running' ? 'running' : 'stopped'
+      
+      // 更新检测结果列表，使用真实的API数据
+      detectionResults.value = response.data.recent_detections.map(detection => {
+        // 根据风险等级确定建议
+        let suggestion = ''
+        if (detection.risk_level === 'high') {
+          suggestion = '高风险登录尝试，建议立即调查并考虑阻止该IP地址'
+        } else if (detection.risk_level === 'medium') {
+          suggestion = '中等风险活动，建议监控该用户的后续行为'
+        } else {
+          suggestion = '低风险活动，继续观察'
+        }
+        
+        return {
+          id: detection.id,
+          type: detection.risk_level_display,
+          description: `来自IP ${detection.ip_address} 的登录尝试`,
+          sourceIP: detection.ip_address,
+          username: detection.username,
+          location: detection.location,
+          riskLevel: detection.risk_level === 'high' ? 'high' : detection.risk_level === 'medium' ? 'medium' : 'low',
+          timestamp: new Date(detection.created_at).toLocaleString('zh-CN'),
+          suggestion: suggestion
+        }
+      })
+      
+      // 如果有当前配置，更新配置参数
+      if (response.data.current_config) {
+        detectionInterval.value = response.data.current_config.detection_interval
+        sensitivity.value = response.data.current_config.sensitivity
       }
+    } else {
+      ElMessage.error(response.msg || '获取实时检测状态失败')
     }
-  }, 1000)
+  } catch (error) {
+    ElMessage.error('获取实时检测状态失败')
+    console.error('获取实时检测状态失败:', error)
+  }
 }
 
-const pauseDetection = () => {
-  detectionStatus.value = 'paused'
+// 控制方法
+const startDetection = async () => {
+  try {
+    // 这里应该调用API来启动检测，但我们暂时使用模拟方式
+    detectionStatus.value = 'running'
+    detectionProgress.value = 0
+    
+    // 获取最新的检测状态
+    await fetchRealtimeDetection()
+    
+    ElMessage.success('检测已启动')
+  } catch (error) {
+    ElMessage.error('启动检测失败')
+    console.error('启动检测失败:', error)
+  }
 }
 
-const stopDetection = () => {
-  detectionStatus.value = 'stopped'
-  detectionProgress.value = 0
+const pauseDetection = async () => {
+  try {
+    detectionStatus.value = 'paused'
+    
+    // 获取最新的检测状态
+    await fetchRealtimeDetection()
+    
+    ElMessage.info('检测已暂停')
+  } catch (error) {
+    ElMessage.error('暂停检测失败')
+    console.error('暂停检测失败:', error)
+  }
 }
 
-const saveConfig = () => {
-  // 保存配置逻辑
-  console.log('配置已保存', {
-    detectionInterval: detectionInterval.value,
-    sensitivity: sensitivity.value,
-    logFilePath: logFilePath.value,
-    rules: rules.value
-  })
+const stopDetection = async () => {
+  try {
+    detectionStatus.value = 'stopped'
+    detectionProgress.value = 0
+    
+    // 获取最新的检测状态
+    await fetchRealtimeDetection()
+    
+    ElMessage.info('检测已停止')
+  } catch (error) {
+    ElMessage.error('停止检测失败')
+    console.error('停止检测失败:', error)
+  }
+}
+
+// 获取检测配置列表
+const fetchDetectionConfigs = async () => {
+  try {
+    const response: DetectionConfigsResponse = await getDetectionConfigs()
+    
+    if (response.code === 200) {
+      detectionConfigs.value = response.data
+    } else {
+      ElMessage.error(response.msg || '获取检测配置列表失败')
+    }
+  } catch (error) {
+    ElMessage.error('获取检测配置列表失败')
+    console.error('获取检测配置列表失败:', error)
+  }
+}
+
+// 激活指定配置
+const activateConfig = async (configId: number) => {
+  try {
+    const response: ActivateDetectionConfigResponse = await activateDetectionConfig(configId)
+    
+    if (response.code === 200) {
+      ElMessage.success(`配置已激活: ${response.data.name}`)
+      // 重新获取实时检测状态以更新当前配置信息
+      await fetchRealtimeDetection()
+      // 重新获取配置列表
+      await fetchDetectionConfigs()
+    } else {
+      ElMessage.error(response.msg || '激活配置失败')
+    }
+  } catch (error) {
+    ElMessage.error('激活配置失败')
+    console.error('激活配置失败:', error)
+  }
+}
+
+const saveConfig = async () => {
+  try {
+    // 创建新的检测配置
+    const configData: CreateDetectionConfigRequest = {
+      name: `检测配置_${new Date().toLocaleString('zh-CN')}`,
+      description: '用户自定义检测配置',
+      detection_interval: detectionInterval.value,
+      sensitivity: sensitivity.value,
+      high_risk_threshold: 0.8,
+      medium_risk_threshold: 0.5
+    }
+    
+    const response: DetectionConfigResponse = await createDetectionConfig(configData)
+    
+    // 创建配置的响应直接返回DetectionConfig对象，没有code字段
+    if (response.id) {
+      ElMessage.success('配置已保存')
+      
+      // 激活新创建的配置
+      const activateResponse: ActivateDetectionConfigResponse = await activateDetectionConfig(response.id)
+      
+      if (activateResponse.code === 200) {
+        ElMessage.success('配置已激活')
+        // 重新获取实时检测状态以更新当前配置信息
+        await fetchRealtimeDetection()
+        // 重新获取配置列表
+        await fetchDetectionConfigs()
+      } else {
+        ElMessage.warning('配置已保存但激活失败')
+      }
+    } else {
+      ElMessage.error('保存配置失败')
+    }
+  } catch (error) {
+    ElMessage.error('保存配置失败')
+    console.error('保存配置失败:', error)
+  }
 }
 
 const clearResults = () => {
   detectionResults.value = []
-}
-
-// 模拟检测结果
-const simulateDetection = () => {
-  if (detectionStatus.value !== 'running') return
-
-  const mockResults = [
-    {
-      type: '暴力破解检测',
-      description: 'IP地址在短时间内多次登录失败',
-      sourceIP: '192.168.1.100',
-      username: 'admin',
-      riskLevel: 'high' as const,
-      suggestion: '建议立即封禁该IP地址，并检查系统日志'
-    },
-    {
-      type: '异常时间登录',
-      description: '在非工作时间检测到登录行为',
-      sourceIP: '10.0.0.50',
-      username: 'user123',
-      location: '北京市',
-      riskLevel: 'medium' as const,
-      suggestion: '验证用户身份，确认是否为正常登录'
-    },
-    {
-      type: '新IP检测',
-      description: '检测到来自新IP地址的登录尝试',
-      sourceIP: '203.0.113.45',
-      location: '上海市',
-      riskLevel: 'low' as const,
-      suggestion: '监控该IP的后续行为'
-    }
-  ]
-
-  if (Math.random() > 0.7) {
-    const mockResult = mockResults[Math.floor(Math.random() * mockResults.length)]
-    const newResult = {
-      id: Date.now(),
-      ...mockResult,
-      timestamp: new Date().toLocaleString('zh-CN')
-    }
-    detectionResults.value.unshift(newResult)
-
-    // 限制结果数量
-    if (detectionResults.value.length > 20) {
-      detectionResults.value = detectionResults.value.slice(0, 20)
-    }
-  }
+  ElMessage.info('检测结果已清空')
 }
 
 // 定时器
-let detectionTimer: number
+let fetchTimer: number
 
 onMounted(() => {
-  // 模拟检测过程
-  detectionTimer = setInterval(simulateDetection, 5000)
+  // 初始获取实时检测状态
+  fetchRealtimeDetection()
+  
+  // 获取检测配置列表
+  fetchDetectionConfigs()
+  
+  // 定时获取最新检测状态（每30秒）
+  fetchTimer = setInterval(fetchRealtimeDetection, 30000)
 })
 
 onUnmounted(() => {
-  if (detectionTimer) {
-    clearInterval(detectionTimer)
+  if (fetchTimer) {
+    clearInterval(fetchTimer)
   }
 })
 </script>
