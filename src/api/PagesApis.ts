@@ -140,7 +140,7 @@ export function updateDetectionRecord(id: number, data: UpdateDetectionRecordBod
 // 管理员检测记录相关API
 export function getAdminDetectionRecords(params?: AdminGetDetectionRecordsBody): Promise<AdminDetectionRecordsResponse> {
   return serviceAxios({
-    url: '/malicious/admin/detectionRecords/',
+    url: '/malicious/detectionRecords/',
     method: 'get',
     params
   })
@@ -172,6 +172,13 @@ export function updateAdminDetectionRecord(id: number, data: AdminUpdateDetectio
 export function deleteDetectionRecord(id: number): Promise<void> {
   return serviceAxios({
     url: `/malicious/admin/detectionRecords/${id}/`,
+    method: 'delete'
+  })
+}
+
+export function deleteAdminDetectionRecord(id: number): Promise<{ code: number, msg: string }> {
+  return serviceAxios({
+    url: `/malicious/detectionRecords/${id}/`,
     method: 'delete'
   })
 }

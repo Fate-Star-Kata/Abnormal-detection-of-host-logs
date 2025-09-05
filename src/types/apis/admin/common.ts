@@ -47,17 +47,17 @@ export interface DetectionRecord {
   id: number;
   ip_address: string;
   username: string;
-  login_time: Date;
+  login_time: string;
   risk_score: number;
-  risk_level: "high" | "medium" | "low";
-  risk_level_display: "高" | "中" | "低";
+  risk_level: "high" | "medium" | "low" | "minimal";
+  risk_level_display: string;
   is_malicious: boolean;
   location: string;
-  status: "pending" | "investigating" | "resolved" | "false_positive";
-  status_display: "待处理" | "调查中" | "已解决" | "误报";
-  notes: string;
-  created_at: Date;
-  updated_at: Date;
+  status: "pending" | "investigating" | "resolved" | "false_positive" | "ignored";
+  status_display: string;
+  notes?: string;
+  created_at: string;
+  updated_at?: string;
 }
 
 export interface DetectionRecordsList {
@@ -67,10 +67,10 @@ export interface DetectionRecordsList {
   records: DetectionRecord[];
 }
 
-export interface DetectionRecordsResponse extends Response<DetectionRecordsList> {
+export interface DetectionRecordsResponse extends Response<DetectionRecord[]> {
   code: number;
   msg: string;
-  data: DetectionRecordsList;
+  data: DetectionRecord[];
 }
 
 export interface CreateDetectionRecordBody {
