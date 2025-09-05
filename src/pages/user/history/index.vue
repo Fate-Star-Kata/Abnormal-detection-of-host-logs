@@ -277,30 +277,28 @@
                                     </label>
                                 </td>
                                 <td>
-                                    <div class="text-sm font-medium">{{ formatDateTime(record.timestamp) }}</div>
-                                    <div class="text-xs opacity-70">{{ formatTimeAgo(record.timestamp) }}</div>
+                                    <div class="text-sm font-medium">{{ formatDate(record.created_at) }}</div>
+                                    <div class="text-xs opacity-70">{{ formatTimeAgo(record.created_at) }}</div>
                                 </td>
                                 <td>
                                     <div class="badge badge-outline badge-sm"
-                                        :class="getEventTypeClass(record.eventType)">
-                                        {{ getEventTypeName(record.eventType) }}
+                                        :class="getEventTypeClass(record.anomaly_type || 'unknown')">
+                                        {{ getEventTypeName(record.anomaly_type || 'unknown') }}
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="badge badge-sm" :class="getRiskLevelClass(record.riskLevel)">
-                                        {{ getRiskLevelName(record.riskLevel) }}
+                                    <div class="badge badge-sm" :class="getRiskLevelClass(record.risk_level)">
+                                        {{ getRiskLevelName(record.risk_level) }}
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="font-mono text-sm">{{ record.sourceIP }}</div>
-                                    <div class="text-xs opacity-70">{{ record.port ? ':' + record.port : '' }}</div>
+                                    <div class="font-mono text-sm">{{ record.ip_address }}</div>
                                 </td>
                                 <td>
                                     <div class="font-medium">{{ record.username || '-' }}</div>
                                 </td>
                                 <td>
                                     <div class="text-sm">{{ record.location || '-' }}</div>
-                                    <div class="text-xs opacity-70">{{ record.country || '' }}</div>
                                 </td>
                                 <td>
                                     <div class="badge badge-sm" :class="getStatusClass(record.status)">
@@ -349,7 +347,7 @@
                         </button>
 
                         <button v-for="page in visiblePages" :key="page" class="join-item btn btn-sm"
-                            :class="{ 'btn-active': page === currentPage }" @click="currentPage = page">
+                            :class="{ 'btn-active': page === currentPage }" @click="typeof page === 'number' ? currentPage = page : null">
                             {{ page }}
                         </button>
 
@@ -402,20 +400,20 @@
                                     </div>
                                     <div class="flex justify-between">
                                         <span class="opacity-70">发生时间:</span>
-                                        <span>{{ formatDateTime(selectedRecord.timestamp) }}</span>
+                                        <span>{{ formatDate(selectedRecord.created_at) }}</span>
                                     </div>
                                     <div class="flex justify-between">
                                         <span class="opacity-70">事件类型:</span>
                                         <div class="badge badge-outline badge-sm"
-                                            :class="getEventTypeClass(selectedRecord.eventType)">
-                                            {{ getEventTypeName(selectedRecord.eventType) }}
+                                            :class="getEventTypeClass(selectedRecord.anomaly_type || 'unknown')">
+                                            {{ getEventTypeName(selectedRecord.anomaly_type || 'unknown') }}
                                         </div>
                                     </div>
                                     <div class="flex justify-between">
                                         <span class="opacity-70">风险等级:</span>
                                         <div class="badge badge-sm"
-                                            :class="getRiskLevelClass(selectedRecord.riskLevel)">
-                                            {{ getRiskLevelName(selectedRecord.riskLevel) }}
+                                            :class="getRiskLevelClass(selectedRecord.risk_level)">
+                                            {{ getRiskLevelName(selectedRecord.risk_level) }}
                                         </div>
                                     </div>
                                 </div>
@@ -428,19 +426,19 @@
                                 <div class="space-y-2 text-sm">
                                     <div class="flex justify-between">
                                         <span class="opacity-70">源IP地址:</span>
-                                        <span class="font-mono">{{ selectedRecord.sourceIP }}</span>
+                                        <span class="font-mono">{{ selectedRecord.ip_address }}</span>
                                     </div>
                                     <div class="flex justify-between">
-                                        <span class="opacity-70">端口:</span>
-                                        <span>{{ selectedRecord.port || '-' }}</span>
+                                        <span class="opacity-70">用户代理:</span>
+                                        <span>{{ selectedRecord.user_agent || '-' }}</span>
                                     </div>
                                     <div class="flex justify-between">
                                         <span class="opacity-70">地理位置:</span>
                                         <span>{{ selectedRecord.location || '-' }}</span>
                                     </div>
                                     <div class="flex justify-between">
-                                        <span class="opacity-70">国家/地区:</span>
-                                        <span>{{ selectedRecord.country || '-' }}</span>
+                                        <span class="opacity-70">风险评分:</span>
+                                        <span>{{ selectedRecord.risk_score || '-' }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -450,17 +448,17 @@
                     <!-- 详细描述 -->
                     <div class="card bg-base-200">
                         <div class="card-body p-4">
-                            <h4 class="font-medium mb-3">事件描述</h4>
-                            <p class="text-sm leading-relaxed">{{ selectedRecord.description }}</p>
+                            <h4 class="font-medium mb-3">备注信息</h4>
+                            <p class="text-sm leading-relaxed">{{ selectedRecord.notes || '暂无备注信息' }}</p>
                         </div>
                     </div>
 
-                    <!-- 原始日志 -->
-                    <div class="card bg-base-200">
+                    <!-- 检测特征 -->
+                    <div class="card bg-base-200" v-if="selectedRecord.detection_features">
                         <div class="card-body p-4">
-                            <h4 class="font-medium mb-3">原始日志</h4>
+                            <h4 class="font-medium mb-3">检测特征</h4>
                             <div class="mockup-code text-xs">
-                                <pre><code>{{ selectedRecord.rawLog }}</code></pre>
+                                <pre><code>{{ JSON.stringify(selectedRecord.detection_features, null, 2) }}</code></pre>
                             </div>
                         </div>
                     </div>
@@ -482,6 +480,9 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
+import { getDetectionRecords, updateDetectionRecordStatus } from '@/api/PagesApis'
+import type { DetectionRecordsResponse, DetectionRecord, UpdateDetectionRecordStatusRequest, DetectionRecordResponse } from '@/types/apis/PagesApis_T'
+import { ElMessage } from 'element-plus'
 
 // 搜索条件
 const searchFilters = reactive({
@@ -496,6 +497,30 @@ const searchFilters = reactive({
     keywords: ''
 })
 
+const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const year = String(date.getFullYear());
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    const milliseconds = String(date.getMilliseconds()).padStart(3, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}`;
+};
+
+const formatDateForAPI = (date: Date) => {
+    const year = String(date.getFullYear());
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    const milliseconds = String(date.getMilliseconds()).padStart(3, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}`;
+};
+
 // 状态管理
 const searching = ref(false)
 const searchTime = ref(0)
@@ -508,55 +533,123 @@ const sortBy = ref('timestamp')
 const sortOrder = ref('desc')
 
 // 搜索结果
-const searchResults = ref<any[]>([])
-const selectedRecord = ref<any>(null)
+const searchResults = ref<DetectionRecord[]>([])
+const selectedRecord = ref<DetectionRecord | null>(null)
 const detailModal = ref<HTMLDialogElement>()
 
-// 模拟数据
-const mockData = [
-    {
-        id: 1001,
-        timestamp: '2024-01-15T14:30:25Z',
-        eventType: 'brute_force',
-        riskLevel: 'high',
-        sourceIP: '192.168.1.100',
-        port: 22,
-        username: 'admin',
-        location: '北京市',
-        country: '中国',
-        status: 'pending',
-        description: '检测到来自192.168.1.100的暴力破解攻击，在5分钟内尝试登录失败15次',
-        rawLog: '[2024-01-15 14:30:25] Failed login attempt from 192.168.1.100 for user admin'
-    },
-    {
-        id: 1002,
-        timestamp: '2024-01-15T13:45:12Z',
-        eventType: 'abnormal_time',
-        riskLevel: 'medium',
-        sourceIP: '10.0.0.50',
-        port: 3389,
-        username: 'user01',
-        location: '上海市',
-        country: '中国',
-        status: 'resolved',
-        description: '用户user01在非工作时间(凌晨2点)进行登录，存在异常',
-        rawLog: '[2024-01-15 13:45:12] Successful login from 10.0.0.50 for user user01 at unusual time'
-    },
-    {
-        id: 1003,
-        timestamp: '2024-01-15T12:20:08Z',
-        eventType: 'new_ip',
-        riskLevel: 'low',
-        sourceIP: '203.0.113.45',
-        port: 443,
-        username: 'manager',
-        location: '广州市',
-        country: '中国',
-        status: 'processing',
-        description: '用户manager从新的IP地址203.0.113.45登录系统',
-        rawLog: '[2024-01-15 12:20:08] New IP login detected from 203.0.113.45 for user manager'
+// 获取检测记录数据
+const fetchDetectionRecords = async () => {
+  try {
+    searching.value = true
+    const startTime = Date.now()
+    
+    // 构建API请求参数
+    const params: any = {
+      page: currentPage.value,
+      page_size: pageSize.value
     }
-]
+    
+    // 添加筛选条件
+    if (searchFilters.riskLevel) {
+      params.risk_level = searchFilters.riskLevel
+    }
+    if (searchFilters.sourceIP) {
+      params.ip_address = searchFilters.sourceIP
+    }
+    if (searchFilters.username) {
+      params.username = searchFilters.username
+    }
+    if (searchFilters.status) {
+      params.status = searchFilters.status
+    }
+    
+    // 处理时间范围
+    if (searchFilters.timeRange === 'custom' && searchFilters.startTime && searchFilters.endTime) {
+      params.start_time = formatDateForAPI(new Date(searchFilters.startTime))
+      params.end_time = formatDateForAPI(new Date(searchFilters.endTime))
+    } else if (searchFilters.timeRange !== 'custom') {
+      const now = new Date()
+      let startTime: Date
+      
+      switch (searchFilters.timeRange) {
+        case '1h':
+          startTime = new Date(now.getTime() - 60 * 60 * 1000)
+          break
+        case '24h':
+          startTime = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+          break
+        case '7d':
+          startTime = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+          break
+        case '30d':
+          startTime = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+          break
+        default:
+          startTime = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+      }
+      
+      params.start_time = formatDateForAPI(startTime)
+      params.end_time = formatDateForAPI(now)
+    }
+    
+    const response: DetectionRecordsResponse = await getDetectionRecords(params)
+    
+    if (response.code === 200 && response.data) {
+      let results = response.data
+      
+      // 如果有关键词搜索，进行客户端过滤
+      if (searchFilters.keywords) {
+        const keywords = searchFilters.keywords.toLowerCase().split(' ')
+        results = results.filter(record =>
+          keywords.some(keyword =>
+            record.ip_address.includes(keyword) ||
+            record.username?.toLowerCase().includes(keyword) ||
+            record.notes?.toLowerCase().includes(keyword)
+          )
+        )
+      }
+      
+      // 应用排序
+      results.sort((a, b) => {
+        let aVal = a[sortBy.value as keyof DetectionRecord]
+        let bVal = b[sortBy.value as keyof DetectionRecord]
+        
+        if (sortBy.value === 'created_at') {
+          aVal = new Date(aVal as string).getTime()
+          bVal = new Date(bVal as string).getTime()
+        }
+        
+        // 处理可能为undefined的值
+        if (aVal === undefined || bVal === undefined) {
+          if (aVal === undefined && bVal === undefined) return 0
+          if (aVal === undefined) return 1
+          if (bVal === undefined) return -1
+        }
+        
+        if (sortOrder.value === 'asc') {
+          return aVal > bVal ? 1 : -1
+        } else {
+          return aVal < bVal ? 1 : -1
+        }
+      })
+      
+      searchResults.value = results
+      totalResults.value = results.length
+      searchTime.value = Date.now() - startTime
+    } else {
+      ElMessage.error(response.msg || '获取检测记录失败')
+      searchResults.value = []
+      totalResults.value = 0
+    }
+  } catch (error) {
+    ElMessage.error('获取检测记录失败')
+    console.error('获取检测记录失败:', error)
+    searchResults.value = []
+    totalResults.value = 0
+  } finally {
+    searching.value = false
+  }
+}
 
 // 计算属性
 const totalPages = computed(() => Math.ceil(totalResults.value / pageSize.value))
@@ -568,7 +661,7 @@ const paginatedResults = computed(() => {
 })
 
 const visiblePages = computed(() => {
-    const pages = []
+    const pages: (number | string)[] = []
     const total = totalPages.value
     const current = currentPage.value
 
@@ -612,47 +705,8 @@ const resetSearch = () => {
 }
 
 const performSearch = async () => {
-    searching.value = true
-    const startTime = Date.now()
-
-    // 模拟搜索延迟
-    await new Promise(resolve => setTimeout(resolve, 800))
-
-    // 模拟搜索结果
-    let results = [...mockData]
-
-    // 应用筛选条件
-    if (searchFilters.eventType) {
-        results = results.filter(r => r.eventType === searchFilters.eventType)
-    }
-    if (searchFilters.riskLevel) {
-        results = results.filter(r => r.riskLevel === searchFilters.riskLevel)
-    }
-    if (searchFilters.sourceIP) {
-        results = results.filter(r => r.sourceIP.includes(searchFilters.sourceIP))
-    }
-    if (searchFilters.username) {
-        results = results.filter(r => r.username?.includes(searchFilters.username))
-    }
-    if (searchFilters.status) {
-        results = results.filter(r => r.status === searchFilters.status)
-    }
-    if (searchFilters.keywords) {
-        const keywords = searchFilters.keywords.toLowerCase().split(' ')
-        results = results.filter(r =>
-            keywords.some(keyword =>
-                r.description.toLowerCase().includes(keyword) ||
-                r.sourceIP.includes(keyword) ||
-                r.username?.toLowerCase().includes(keyword)
-            )
-        )
-    }
-
-    searchResults.value = results
-    totalResults.value = results.length
     currentPage.value = 1
-    searchTime.value = Date.now() - startTime
-    searching.value = false
+    await fetchDetectionRecords()
 }
 
 const setSortBy = (field: string, order?: string) => {
@@ -663,22 +717,8 @@ const setSortBy = (field: string, order?: string) => {
         sortOrder.value = order || 'desc'
     }
 
-    // 应用排序
-    searchResults.value.sort((a, b) => {
-        let aVal = a[field]
-        let bVal = b[field]
-
-        if (field === 'timestamp') {
-            aVal = new Date(aVal).getTime()
-            bVal = new Date(bVal).getTime()
-        }
-
-        if (sortOrder.value === 'asc') {
-            return aVal > bVal ? 1 : -1
-        } else {
-            return aVal < bVal ? 1 : -1
-        }
-    })
+    // 重新获取数据以应用排序
+    fetchDetectionRecords()
 }
 
 const toggleSelectAll = () => {
@@ -699,10 +739,29 @@ const closeDetails = () => {
     selectedRecord.value = null
 }
 
-const markAsProcessed = (id: number) => {
-    const record = searchResults.value.find(r => r.id === id)
-    if (record) {
-        record.status = 'resolved'
+const markAsProcessed = async (id: number) => {
+    try {
+        const data: UpdateDetectionRecordStatusRequest = {
+            status: 'resolved',
+            notes: '已手动标记为已处理'
+        }
+        
+        const response: DetectionRecordResponse = await updateDetectionRecordStatus(id, data)
+        
+        if (response.code === 200) {
+            // 更新本地记录状态
+            const record = searchResults.value.find(r => r.id === id)
+            if (record) {
+                record.status = 'resolved'
+                record.notes = data.notes
+            }
+            ElMessage.success('记录状态已更新')
+        } else {
+            ElMessage.error(response.msg || '更新状态失败')
+        }
+    } catch (error) {
+        ElMessage.error('更新状态失败')
+        console.error('更新状态失败:', error)
     }
 }
 
@@ -738,7 +797,9 @@ const getEventTypeName = (type: string) => {
         abnormal_time: '异常时间',
         new_ip: '新IP登录',
         geo_anomaly: '地理异常',
-        failed_login: '登录失败'
+        failed_login: '登录失败',
+        suspicious_login: '可疑登录',
+        unknown: '未知类型'
     }
     return names[type] || type
 }
@@ -749,7 +810,9 @@ const getEventTypeClass = (type: string) => {
         abnormal_time: 'badge-warning',
         new_ip: 'badge-info',
         geo_anomaly: 'badge-primary',
-        failed_login: 'badge-secondary'
+        failed_login: 'badge-secondary',
+        suspicious_login: 'badge-warning',
+        unknown: 'badge-ghost'
     }
     return classes[type] || 'badge-ghost'
 }
@@ -794,7 +857,7 @@ const getStatusClass = (status: string) => {
 
 // 初始化
 onMounted(() => {
-    performSearch()
+    fetchDetectionRecords()
 })
 </script>
 
