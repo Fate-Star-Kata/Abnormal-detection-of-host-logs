@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>历史记录 - 恶意登录异常检测系统</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🛡️ 恶意登录异常检测系统</h1>
+            <nav>
+                <ul>
+                    <li><a href="index.html">首页</a></li>
+                    <li><a href="detection.html">异常检测</a></li>
+                    <li><a href="notification.html">邮件通知</a></li>
+                    <li><a href="analysis.html">数据分析</a></li>
+                    <li><a href="history.html" class="active">历史记录</a></li>
+                    <li><a href="admin.html">管理端</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="history-search">
+            <h2>历史记录查询</h2>
+            <div class="search-panel">
+                <div class="search-filters">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>开始时间:</label>
+                            <input type="datetime-local" id="startTime">
+                        </div>
+                        <div class="filter-group">
+                            <label>结束时间:</label>
+                            <input type="datetime-local" id="endTime">
+                        </div>
+                        <div class="filter-group">
+                            <label>IP地址:</label>
+                            <input type="text" placeholder="输入IP地址" id="ipFilter">
+                        </div>
+                    </div>
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>用户名:</label>
+                            <input type="text" placeholder="输入用户名" id="userFilter">
+                        </div>
+                        <div class="filter-group">
+                            <label>异常类型:</label>
+                            <select id="typeFilter">
+                                <option value="">全部类型</option>
+                                <option value="brute_force">暴力破解</option>
+                                <option value="time_anomaly">异常时间</option>
+                                <option value="new_ip">新IP登录</option>
+                                <option value="geo_anomaly">地理位置异常</option>
+                                <option value="frequency">频繁登录</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>风险等级:</label>
+                            <select id="riskFilter">
+                                <option value="">全部等级</option>
+                                <option value="high">高危</option>
+                                <option value="medium">中危</option>
+                                <option value="low">低危</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="search-actions">
+                        <button class="btn btn-primary">搜索</button>
+                        <button class="btn btn-secondary">重置</button>
+                        <button class="btn btn-outline">导出结果</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="history-results">
+            <div class="results-header">
+                <h3>检索结果 (共找到 1,247 条记录)</h3>
+                <div class="results-actions">
+                    <select class="page-size">
+                        <option value="10">每页10条</option>
+                        <option value="25" selected>每页25条</option>
+                        <option value="50">每页50条</option>
+                        <option value="100">每页100条</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="history-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="selectAll"></th>
+                            <th>时间 <span class="sort-icon">↕</span></th>
+                            <th>IP地址 <span class="sort-icon">↕</span></th>
+                            <th>用户名 <span class="sort-icon">↕</span></th>
+                            <th>异常类型</th>
+                            <th>风险等级 <span class="sort-icon">↕</span></th>
+                            <th>处理状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><input type="checkbox"></td>
+                            <td>2024-01-15 14:35:22</td>
+                            <td>192.168.1.100</td>
+                            <td>admin</td>
+                            <td>暴力破解</td>
+                            <td><span class="risk-high">高危</span></td>
+                            <td><span class="status-handled">已处理</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-primary">详情</button>
+                                <button class="btn btn-sm btn-secondary">导出</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox"></td>
+                            <td>2024-01-15 13:45:18</td>
+                            <td>10.0.0.25</td>
+                            <td>user01</td>
+                            <td>异常时间登录</td>
+                            <td><span class="risk-medium">中危</span></td>
+                            <td><span class="status-pending">待处理</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-primary">详情</button>
+                                <button class="btn btn-sm btn-secondary">导出</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox"></td>
+                            <td>2024-01-15 12:18:45</td>
+                            <td>172.16.0.50</td>
+                            <td>guest</td>
+                            <td>新IP登录</td>
+                            <td><span class="risk-low">低危</span></td>
+                            <td><span class="status-ignored">已忽略</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-primary">详情</button>
+                                <button class="btn btn-sm btn-secondary">导出</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox"></td>
+                            <td>2024-01-15 11:22:33</td>
+                            <td>203.0.113.45</td>
+                            <td>test</td>
+                            <td>地理位置异常</td>
+                            <td><span class="risk-high">高危</span></td>
+                            <td><span class="status-blocked">已封禁</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-primary">详情</button>
+                                <button class="btn btn-sm btn-secondary">导出</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox"></td>
+                            <td>2024-01-15 10:15:12</td>
+                            <td>192.168.1.200</td>
+                            <td>operator</td>
+                            <td>频繁登录</td>
+                            <td><span class="risk-medium">中危</span></td>
+                            <td><span class="status-monitoring">监控中</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-primary">详情</button>
+                                <button class="btn btn-sm btn-secondary">导出</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination">
+                <div class="pagination-info">
+                    显示第 1-25 条，共 1,247 条记录
+                </div>
+                <div class="pagination-controls">
+                    <button class="btn btn-sm" disabled>上一页</button>
+                    <button class="btn btn-sm btn-primary">1</button>
+                    <button class="btn btn-sm">2</button>
+                    <button class="btn btn-sm">3</button>
+                    <span>...</span>
+                    <button class="btn btn-sm">50</button>
+                    <button class="btn btn-sm">下一页</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="batch-operations">
+            <h3>批量操作</h3>
+            <div class="batch-panel">
+                <div class="selected-count">
+                    已选择 <span id="selectedCount">0</span> 条记录
+                </div>
+                <div class="batch-actions">
+                    <button class="btn btn-warning">批量标记为已处理</button>
+                    <button class="btn btn-danger">批量删除</button>
+                    <button class="btn btn-secondary">批量导出</button>
+                    <button class="btn btn-info">生成报告</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 详情模态框 -->
+    <div class="modal" id="detailModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>异常事件详情</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <label>事件ID:</label>
+                        <span>EVT-20240115-001</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>检测时间:</label>
+                        <span>2024-01-15 14:35:22</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>源IP地址:</label>
+                        <span>192.168.1.100</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>目标用户:</label>
+                        <span>admin</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>异常类型:</label>
+                        <span>暴力破解攻击</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>风险等级:</label>
+                        <span class="risk-high">高危</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>尝试次数:</label>
+                        <span>45次</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>时间窗口:</label>
+                        <span>5分钟</span>
+                    </div>
+                    <div class="detail-item full-width">
+                        <label>原始日志:</label>
+                        <textarea readonly>Jan 15 14:35:22 server sshd[1234]: Failed password for admin from 192.168.1.100 port 22 ssh2
+Jan 15 14:35:25 server sshd[1235]: Failed password for admin from 192.168.1.100 port 22 ssh2
+Jan 15 14:35:28 server sshd[1236]: Failed password for admin from 192.168.1.100 port 22 ssh2</textarea>
+                    </div>
+                    <div class="detail-item full-width">
+                        <label>处理建议:</label>
+                        <p>建议立即封禁该IP地址，并检查admin账户的密码强度。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger">封禁IP</button>
+                <button class="btn btn-warning">标记已处理</button>
+                <button class="btn btn-secondary">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 恶意登录异常检测系统. 保留所有权利.</p>
+        </div>
+    </footer>
+
+    <script>
+        // 全选功能
+        document.getElementById('selectAll').addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('tbody input[type="checkbox"]');
+            checkboxes.forEach(cb => cb.checked = this.checked);
+            updateSelectedCount();
+        });
+
+        // 更新选中数量
+        function updateSelectedCount() {
+            const selected = document.querySelectorAll('tbody input[type="checkbox"]:checked').length;
+            document.getElementById('selectedCount').textContent = selected;
+        }
+
+        // 为所有复选框添加事件监听
+        document.querySelectorAll('tbody input[type="checkbox"]').forEach(cb => {
+            cb.addEventListener('change', updateSelectedCount);
+        });
+
+        // 模态框功能
+        document.querySelectorAll('.btn-primary').forEach(btn => {
+            if (btn.textContent === '详情') {
+                btn.addEventListener('click', () => {
+                    document.getElementById('detailModal').style.display = 'flex';
+                });
+            }
+        });
+
+        document.querySelector('.modal-close').addEventListener('click', () => {
+            document.getElementById('detailModal').style.display = 'none';
+        });
+    </script>
+</body>
+</html>

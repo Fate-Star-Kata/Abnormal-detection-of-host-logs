@@ -10,15 +10,54 @@ export const defaultMenuItems: MenuItem[] = [
     hide: false,
   },
   {
-    id: 'knowledge',
-    label: '知识库',
-    href: '/knowledge',
+    id: 'dashboard',
+    label: '系统概览',
+    href: '/dashboard',
     icon: null,
+  },
+  {
+    id: 'detection',
+    label: '实时监测',
+    href: '/detection',
+    icon: null,
+  },
+  {
+    id: 'history',
+    label: '历史记录',
+    href: '/history',
+    icon: null,
+  },
+  {
+    id: 'analysis',
+    label: '数据统计',
+    href: '/analysis',
+    icon: null,
+  },
+
+  {
+    id: 'settings',
+    label: '系统设置',
+    href: '/settings',
+    icon: null,
+    children: [
+      {
+        id: 'emailSystem',
+        label: '邮箱管理',
+        href: '/emailSystem',
+        icon: null,
+      },
+      {
+        id: 'settings',
+        label: '用户设置',
+        href: '/settings',
+      }
+    ]
   },
   {
     id: 'templates',
     label: 'menu.templates',
     href: '/templates',
+    hide: true,
     children: [
       {
         id: 'dashboard',
@@ -87,31 +126,49 @@ export const adminMenuItems: AdminHeader[] = [
   },
   {
     id: "4",
+    title: "检测记录",
+    icon: "Document",
+    path: "/admin/detection-records",
+  },
+  {
+    id: "5",
+    title: "检测规则",
+    icon: "SetUp",
+    path: "/admin/rule-config",
+  },
+  {
+    id: "6",
     title: "通知管理",
     icon: "Bell",
     path: "/admin/notice",
   },
   {
-    id: "5",
+    id: "7",
     title: "知识管理",
     icon: "Compass",
     path: "/admin/knowledge",
   },
   {
-    id: "6",
+    id: "8",
+    title: "数据备份",
+    icon: "FolderOpened",
+    path: "/admin/backup-recovery",
+  },
+  {
+    id: "9",
     title: "订单管理",
     icon: "ShoppingCart",
     path: "/admin/orders",
     hide: true,
     children: [
       {
-        id: "6-1",
+        id: "9-1",
         title: "订单列表",
         icon: "List",
         path: "/admin/orders/list",
       },
       {
-        id: "6-2",
+        id: "9-2",
         title: "退款管理",
         icon: "RefreshLeft",
         path: "/admin/orders/refunds",
@@ -119,33 +176,33 @@ export const adminMenuItems: AdminHeader[] = [
     ],
   },
   {
-    id: '8',
+    id: '10',
     title: 'AI 助手',
     icon: 'ChatDotRound',
     path: '/admin/ai',
     hide: true
   },
   {
-    id: "10",
+    id: "11",
     title: "系统设置",
     icon: "Setting",
     path: "/admin/settings",
     hide: true,
     children: [
       {
-        id: "10-1",
+        id: "11-1",
         title: "基础设置",
         icon: "Tools",
         path: "/admin/settings/basic",
       },
       {
-        id: "10-2",
+        id: "11-2",
         title: "权限管理",
         icon: "Key",
         path: "/admin/settings/permissions",
       },
       {
-        id: "10-3",
+        id: "11-3",
         title: "系统日志",
         icon: "DocumentCopy",
         path: "/admin/settings/logs",
@@ -153,13 +210,13 @@ export const adminMenuItems: AdminHeader[] = [
     ],
   },
   {
-    id: "11",
+    id: "12",
     title: "操作日志",
     icon: "CollectionTag",
     path: "/admin/log",
   },
   {
-    id: "12",
+    id: "13",
     title: "系统配置",
     icon: "Tools",
     path: "/admin/systemConfig",

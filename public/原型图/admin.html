@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理端 - 恶意登录异常检测系统</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🛡️ 恶意登录异常检测系统 - 管理端</h1>
+            <nav>
+                <ul>
+                    <li><a href="index.html">首页</a></li>
+                    <li><a href="detection.html">异常检测</a></li>
+                    <li><a href="notification.html">邮件通知</a></li>
+                    <li><a href="analysis.html">数据分析</a></li>
+                    <li><a href="history.html">历史记录</a></li>
+                    <li><a href="admin.html" class="active">管理端</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="admin-dashboard">
+            <h2>管理员控制台</h2>
+            <div class="admin-stats">
+                <div class="stat-card admin">
+                    <h3>系统用户数</h3>
+                    <div class="stat-number">156</div>
+                </div>
+                <div class="stat-card admin">
+                    <h3>活跃检测规则</h3>
+                    <div class="stat-number">12</div>
+                </div>
+                <div class="stat-card admin">
+                    <h3>待处理告警</h3>
+                    <div class="stat-number">8</div>
+                </div>
+                <div class="stat-card admin">
+                    <h3>系统负载</h3>
+                    <div class="stat-number">23%</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="detection-records">
+            <h3>检测记录管理</h3>
+            <div class="records-controls">
+                <div class="search-bar">
+                    <input type="text" placeholder="搜索记录..." id="recordSearch">
+                    <button class="btn btn-primary">搜索</button>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-success">导出记录</button>
+                    <button class="btn btn-warning">批量处理</button>
+                    <button class="btn btn-danger">清理记录</button>
+                </div>
+            </div>
+
+            <div class="records-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="selectAll"></th>
+                            <th>记录ID</th>
+                            <th>检测时间</th>
+                            <th>源IP</th>
+                            <th>用户名</th>
+                            <th>异常类型</th>
+                            <th>风险等级</th>
+                            <th>处理状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><input type="checkbox"></td>
+                            <td>REC001</td>
+                            <td>2024-01-15 14:23:45</td>
+                            <td>192.168.1.100</td>
+                            <td>admin</td>
+                            <td>暴力破解</td>
+                            <td><span class="risk-high">高</span></td>
+                            <td><span class="status-pending">待处理</span></td>
+                            <td>
+                                <button class="btn-small btn-info">详情</button>
+                                <button class="btn-small btn-success">处理</button>
+                                <button class="btn-small btn-danger">删除</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox"></td>
+                            <td>REC002</td>
+                            <td>2024-01-15 13:45:12</td>
+                            <td>10.0.0.50</td>
+                            <td>user123</td>
+                            <td>异常时间</td>
+                            <td><span class="risk-medium">中</span></td>
+                            <td><span class="status-processed">已处理</span></td>
+                            <td>
+                                <button class="btn-small btn-info">详情</button>
+                                <button class="btn-small btn-secondary">归档</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox"></td>
+                            <td>REC003</td>
+                            <td>2024-01-15 12:30:08</td>
+                            <td>172.16.0.25</td>
+                            <td>guest</td>
+                            <td>新IP登录</td>
+                            <td><span class="risk-low">低</span></td>
+                            <td><span class="status-ignored">已忽略</span></td>
+                            <td>
+                                <button class="btn-small btn-info">详情</button>
+                                <button class="btn-small btn-warning">重新评估</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination">
+                <button class="btn btn-secondary">上一页</button>
+                <span class="page-info">第 1 页，共 15 页</span>
+                <button class="btn btn-secondary">下一页</button>
+            </div>
+        </section>
+
+        <section class="system-management">
+            <h3>系统管理</h3>
+            <div class="management-grid">
+                <div class="management-card">
+                    <h4>用户管理</h4>
+                    <p>管理系统用户权限和访问控制</p>
+                    <button class="btn btn-primary">管理用户</button>
+                </div>
+                <div class="management-card">
+                    <h4>规则配置</h4>
+                    <p>配置检测规则和阈值参数</p>
+                    <button class="btn btn-primary">配置规则</button>
+                </div>
+                <div class="management-card">
+                    <h4>系统设置</h4>
+                    <p>系统参数和性能优化设置</p>
+                    <button class="btn btn-primary">系统设置</button>
+                </div>
+                <div class="management-card">
+                    <h4>日志管理</h4>
+                    <p>系统日志查看和维护</p>
+                    <button class="btn btn-primary">查看日志</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 恶意登录异常检测系统 - 管理端. 保留所有权利.</p>
+        </div>
+    </footer>
+
+    <script>
+        // 全选功能
+        document.getElementById('selectAll').addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('tbody input[type="checkbox"]');
+            checkboxes.forEach(cb => cb.checked = this.checked);
+        });
+
+        // 搜索功能
+        document.getElementById('recordSearch').addEventListener('input', function() {
+            // 这里可以添加搜索逻辑
+            console.log('搜索:', this.value);
+        });
+    </script>
+</body>
+</html>

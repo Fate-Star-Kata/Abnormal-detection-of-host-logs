@@ -8,3 +8,9 @@ export * from './apis/ai'
 export * from './apis/config'
 export * from './apis/knowledge'
 export * from './apis/logs'
+
+export interface Response<T> {
+  code: number
+  msg: string
+  data: T
+}

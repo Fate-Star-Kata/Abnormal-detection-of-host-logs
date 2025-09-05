@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据分析 - 恶意登录异常检测系统</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🛡️ 恶意登录异常检测系统</h1>
+            <nav>
+                <ul>
+                    <li><a href="index.html">首页</a></li>
+                    <li><a href="detection.html">异常检测</a></li>
+                    <li><a href="notification.html">邮件通知</a></li>
+                    <li><a href="analysis.html" class="active">数据分析</a></li>
+                    <li><a href="history.html">历史记录</a></li>
+                    <li><a href="admin.html">管理端</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="analysis-filters">
+            <h2>数据统计分析</h2>
+            <div class="filter-panel">
+                <div class="filter-group">
+                    <label>时间范围:</label>
+                    <select id="timeRange">
+                        <option value="today">今天</option>
+                        <option value="week" selected>最近7天</option>
+                        <option value="month">最近30天</option>
+                        <option value="custom">自定义</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>异常类型:</label>
+                    <select id="anomalyType">
+                        <option value="all">全部</option>
+                        <option value="brute_force">暴力破解</option>
+                        <option value="time_anomaly">异常时间</option>
+                        <option value="new_ip">新IP登录</option>
+                        <option value="geo_anomaly">地理位置异常</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>风险等级:</label>
+                    <select id="riskLevel">
+                        <option value="all">全部</option>
+                        <option value="high">高危</option>
+                        <option value="medium">中危</option>
+                        <option value="low">低危</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary">应用筛选</button>
+            </div>
+        </section>
+
+        <section class="statistics-overview">
+            <h3>统计概览</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h4>总检测次数</h4>
+                    <div class="stat-number">8,742</div>
+                    <div class="stat-period">最近7天</div>
+                </div>
+                <div class="stat-card">
+                    <h4>异常事件</h4>
+                    <div class="stat-number">156</div>
+                    <div class="stat-percentage">1.78%</div>
+                </div>
+                <div class="stat-card">
+                    <h4>威胁IP</h4>
+                    <div class="stat-number">42</div>
+                    <div class="stat-trend">↗ +8</div>
+                </div>
+                <div class="stat-card">
+                    <h4>误报率</h4>
+                    <div class="stat-number">2.3%</div>
+                    <div class="stat-trend">↘ -0.5%</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="charts-section">
+            <div class="chart-grid">
+                <div class="chart-item">
+                    <h3>异常事件趋势</h3>
+                    <div class="chart-container">
+                        <canvas id="trendChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+                <div class="chart-item">
+                    <h3>异常类型分布</h3>
+                    <div class="chart-container">
+                        <canvas id="typeChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+                <div class="chart-item">
+                    <h3>风险等级分布</h3>
+                    <div class="chart-container">
+                        <canvas id="riskChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+                <div class="chart-item">
+                    <h3>时间分布热力图</h3>
+                    <div class="heatmap-container">
+                        <div class="heatmap-grid">
+                            <!-- 24小时 x 7天的热力图 -->
+                            <div class="heatmap-labels">
+                                <div class="hour-labels">
+                                    <span>0</span><span>6</span><span>12</span><span>18</span><span>24</span>
+                                </div>
+                                <div class="day-labels">
+                                    <span>周一</span><span>周二</span><span>周三</span><span>周四</span><span>周五</span><span>周六</span><span>周日</span>
+                                </div>
+                            </div>
+                            <div class="heatmap-cells">
+                                <!-- 这里可以用JavaScript动态生成热力图单元格 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="top-threats">
+            <h3>威胁IP排行</h3>
+            <div class="threats-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>排名</th>
+                            <th>IP地址</th>
+                            <th>攻击次数</th>
+                            <th>最后活动</th>
+                            <th>地理位置</th>
+                            <th>威胁类型</th>
+                            <th>状态</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>192.168.1.100</td>
+                            <td>45</td>
+                            <td>2小时前</td>
+                            <td>未知</td>
+                            <td>暴力破解</td>
+                            <td><span class="status-blocked">已封禁</span></td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>10.0.0.25</td>
+                            <td>23</td>
+                            <td>1天前</td>
+                            <td>内网</td>
+                            <td>异常时间</td>
+                            <td><span class="status-monitoring">监控中</span></td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>172.16.0.50</td>
+                            <td>18</td>
+                            <td>3天前</td>
+                            <td>内网</td>
+                            <td>频繁登录</td>
+                            <td><span class="status-normal">正常</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="analysis-reports">
+            <h3>分析报告</h3>
+            <div class="reports-section">
+                <div class="report-item">
+                    <h4>📊 周报告</h4>
+                    <p>本周检测到156起异常事件，较上周增长12%。主要威胁类型为暴力破解攻击。</p>
+                    <button class="btn btn-secondary">查看详情</button>
+                    <button class="btn btn-outline">下载PDF</button>
+                </div>
+                <div class="report-item">
+                    <h4>📈 月度趋势</h4>
+                    <p>本月异常检测准确率达到97.7%，误报率控制在2.3%以内。</p>
+                    <button class="btn btn-secondary">查看详情</button>
+                    <button class="btn btn-outline">下载PDF</button>
+                </div>
+                <div class="report-item">
+                    <h4>🎯 威胁分析</h4>
+                    <p>识别出42个威胁IP，其中15个已被成功封禁，有效阻止了潜在攻击。</p>
+                    <button class="btn btn-secondary">查看详情</button>
+                    <button class="btn btn-outline">下载PDF</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 恶意登录异常检测系统. 保留所有权利.</p>
+        </div>
+    </footer>
+
+    <script>
+        // 模拟图表数据
+        function initCharts() {
+            // 这里可以集成Chart.js或其他图表库
+            console.log('初始化图表...');
+        }
+        
+        // 生成热力图
+        function generateHeatmap() {
+            const container = document.querySelector('.heatmap-cells');
+            for (let day = 0; day < 7; day++) {
+                for (let hour = 0; hour < 24; hour++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'heatmap-cell';
+                    const intensity = Math.random();
+                    cell.style.backgroundColor = `rgba(255, 0, 0, ${intensity})`;
+                    cell.title = `周${day + 1} ${hour}:00 - 异常数量: ${Math.floor(intensity * 10)}`;
+                    container.appendChild(cell);
+                }
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+            generateHeatmap();
+        });
+    </script>
+</body>
+</html>

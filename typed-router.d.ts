@@ -22,13 +22,16 @@ declare module 'vue-router/auto-routes' {
     '/404/': RouteRecordInfo<'/404/', '/404', Record<never, never>, Record<never, never>>,
     '/admin/': RouteRecordInfo<'/admin/', '/admin', Record<never, never>, Record<never, never>>,
     '/admin/ai/': RouteRecordInfo<'/admin/ai/', '/admin/ai', Record<never, never>, Record<never, never>>,
+    '/admin/backup-recovery/': RouteRecordInfo<'/admin/backup-recovery/', '/admin/backup-recovery', Record<never, never>, Record<never, never>>,
     '/admin/Content/': RouteRecordInfo<'/admin/Content/', '/admin/Content', Record<never, never>, Record<never, never>>,
     '/admin/dashboard/': RouteRecordInfo<'/admin/dashboard/', '/admin/dashboard', Record<never, never>, Record<never, never>>,
+    '/admin/detection-records/': RouteRecordInfo<'/admin/detection-records/', '/admin/detection-records', Record<never, never>, Record<never, never>>,
     '/admin/files/': RouteRecordInfo<'/admin/files/', '/admin/files', Record<never, never>, Record<never, never>>,
     '/admin/knowledge/': RouteRecordInfo<'/admin/knowledge/', '/admin/knowledge', Record<never, never>, Record<never, never>>,
     '/admin/log/': RouteRecordInfo<'/admin/log/', '/admin/log', Record<never, never>, Record<never, never>>,
     '/admin/notice/': RouteRecordInfo<'/admin/notice/', '/admin/notice', Record<never, never>, Record<never, never>>,
     '/admin/profile/': RouteRecordInfo<'/admin/profile/', '/admin/profile', Record<never, never>, Record<never, never>>,
+    '/admin/rule-config/': RouteRecordInfo<'/admin/rule-config/', '/admin/rule-config', Record<never, never>, Record<never, never>>,
     '/admin/settings/': RouteRecordInfo<'/admin/settings/', '/admin/settings', Record<never, never>, Record<never, never>>,
     '/admin/systemConfig/': RouteRecordInfo<'/admin/systemConfig/', '/admin/systemConfig', Record<never, never>, Record<never, never>>,
     '/admin/SystemMonitoring/': RouteRecordInfo<'/admin/SystemMonitoring/', '/admin/SystemMonitoring', Record<never, never>, Record<never, never>>,
@@ -41,9 +44,14 @@ declare module 'vue-router/auto-routes' {
     '/templates/knowledge': RouteRecordInfo<'/templates/knowledge', '/templates/knowledge', Record<never, never>, Record<never, never>>,
     '/templates/stats': RouteRecordInfo<'/templates/stats', '/templates/stats', Record<never, never>, Record<never, never>>,
     '/templates/websocket': RouteRecordInfo<'/templates/websocket', '/templates/websocket', Record<never, never>, Record<never, never>>,
+    '/user/analysis/': RouteRecordInfo<'/user/analysis/', '/user/analysis', Record<never, never>, Record<never, never>>,
+    '/user/dashboard/': RouteRecordInfo<'/user/dashboard/', '/user/dashboard', Record<never, never>, Record<never, never>>,
+    '/user/detection/': RouteRecordInfo<'/user/detection/', '/user/detection', Record<never, never>, Record<never, never>>,
+    '/user/emailSystem/': RouteRecordInfo<'/user/emailSystem/', '/user/emailSystem', Record<never, never>, Record<never, never>>,
     '/user/history/': RouteRecordInfo<'/user/history/', '/user/history', Record<never, never>, Record<never, never>>,
     '/user/knowledge/': RouteRecordInfo<'/user/knowledge/', '/user/knowledge', Record<never, never>, Record<never, never>>,
     '/user/notifications/': RouteRecordInfo<'/user/notifications/', '/user/notifications', Record<never, never>, Record<never, never>>,
+    '/user/settings/': RouteRecordInfo<'/user/settings/', '/user/settings', Record<never, never>, Record<never, never>>,
     '/user/system_film/': RouteRecordInfo<'/user/system_film/', '/user/system_film', Record<never, never>, Record<never, never>>,
     '/userInfo/': RouteRecordInfo<'/userInfo/', '/userInfo', Record<never, never>, Record<never, never>>,
   }
@@ -75,12 +83,20 @@ declare module 'vue-router/auto-routes' {
       routes: '/admin/ai/'
       views: never
     }
+    'src/pages/admin/backup-recovery/index.vue': {
+      routes: '/admin/backup-recovery/'
+      views: never
+    }
     'src/pages/admin/Content/index.vue': {
       routes: '/admin/Content/'
       views: never
     }
     'src/pages/admin/dashboard/index.vue': {
       routes: '/admin/dashboard/'
+      views: never
+    }
+    'src/pages/admin/detection-records/index.vue': {
+      routes: '/admin/detection-records/'
       views: never
     }
     'src/pages/admin/files/index.vue': {
@@ -101,6 +117,10 @@ declare module 'vue-router/auto-routes' {
     }
     'src/pages/admin/profile/index.vue': {
       routes: '/admin/profile/'
+      views: never
+    }
+    'src/pages/admin/rule-config/index.vue': {
+      routes: '/admin/rule-config/'
       views: never
     }
     'src/pages/admin/settings/index.vue': {
@@ -151,6 +171,22 @@ declare module 'vue-router/auto-routes' {
       routes: '/templates/websocket'
       views: never
     }
+    'src/pages/user/analysis/index.vue': {
+      routes: '/user/analysis/'
+      views: never
+    }
+    'src/pages/user/dashboard/index.vue': {
+      routes: '/user/dashboard/'
+      views: never
+    }
+    'src/pages/user/detection/index.vue': {
+      routes: '/user/detection/'
+      views: never
+    }
+    'src/pages/user/emailSystem/index.vue': {
+      routes: '/user/emailSystem/'
+      views: never
+    }
     'src/pages/user/history/index.vue': {
       routes: '/user/history/'
       views: never
@@ -161,6 +197,10 @@ declare module 'vue-router/auto-routes' {
     }
     'src/pages/user/notifications/index.vue': {
       routes: '/user/notifications/'
+      views: never
+    }
+    'src/pages/user/settings/index.vue': {
+      routes: '/user/settings/'
       views: never
     }
     'src/pages/user/system_film/index.vue': {

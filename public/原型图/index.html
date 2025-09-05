@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>恶意登录异常检测系统 - 首页</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🛡️ 恶意登录异常检测系统</h1>
+            <nav>
+                <ul>
+                    <li><a href="index.html" class="active">首页</a></li>
+                    <li><a href="detection.html">异常检测</a></li>
+                    <li><a href="notification.html">邮件通知</a></li>
+                    <li><a href="analysis.html">数据分析</a></li>
+                    <li><a href="history.html">历史记录</a></li>
+                    <li><a href="admin.html">管理端</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="dashboard">
+            <h2>系统概览</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>今日检测次数</h3>
+                    <div class="stat-number">1,247</div>
+                    <div class="stat-trend positive">↗ +12%</div>
+                </div>
+                <div class="stat-card">
+                    <h3>异常登录数</h3>
+                    <div class="stat-number">23</div>
+                    <div class="stat-trend negative">↗ +5</div>
+                </div>
+                <div class="stat-card">
+                    <h3>威胁IP数量</h3>
+                    <div class="stat-number">15</div>
+                    <div class="stat-trend neutral">→ 0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>系统状态</h3>
+                    <div class="stat-status online">正常运行</div>
+                    <div class="stat-uptime">运行时间: 72天</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="recent-alerts">
+            <h2>最近警报</h2>
+            <div class="alert-list">
+                <div class="alert-item high">
+                    <span class="alert-time">14:32</span>
+                    <span class="alert-type">高危</span>
+                    <span class="alert-message">检测到来自 192.168.1.100 的暴力破解攻击</span>
+                </div>
+                <div class="alert-item medium">
+                    <span class="alert-time">13:45</span>
+                    <span class="alert-type">中危</span>
+                    <span class="alert-message">异常登录时间：用户admin在非工作时间登录</span>
+                </div>
+                <div class="alert-item low">
+                    <span class="alert-time">12:18</span>
+                    <span class="alert-type">低危</span>
+                    <span class="alert-message">新IP登录：10.0.0.25 首次登录系统</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="quick-actions">
+            <h2>快速操作</h2>
+            <div class="action-buttons">
+                <a href="detection.html" class="btn btn-primary">开始检测</a>
+                <a href="analysis.html" class="btn btn-secondary">查看分析</a>
+                <a href="notification.html" class="btn btn-secondary">配置通知</a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 恶意登录异常检测系统. 保留所有权利.</p>
+        </div>
+    </footer>
+</body>
+</html>
